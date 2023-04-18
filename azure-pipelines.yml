@@ -36,7 +36,7 @@ stages:
         displayName: "Provision container"
         pool: Default
         variables:
-          - group: EmailServiceVariables
+          - group: TF_EmailService
         steps:
           - script: |
               set -e
