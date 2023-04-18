@@ -13,13 +13,22 @@ provider "azurerm" {
   }
 }
 
+terraform {
+  backend "azurerm"{
+    resource_group_name = "Storage-TF.State-RG"
+    storage_account_name = "storagestatetf"
+    container_name = "tfdata"
+    key = "terraform.tfstate"
+  }
+}
+
 resource "azurerm_resource_group" "tf_rg_emailserviceapi" {
  name = "EmailService-RG"
  location = "westeurope" 
 }
 
 resource "azurerm_container_group" "tf_cg_emailserviceapi" {
-  name = "EmailService-CG"
+  name = "EmailService-CG-V1"
   location = azurerm_resource_group.tf_rg_emailserviceapi.location
   resource_group_name = azurerm_resource_group.tf_rg_emailserviceapi.name
 
