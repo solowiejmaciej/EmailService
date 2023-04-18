@@ -3,28 +3,50 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
-- master
+  - master
 
 resources:
-- repo: self
+  - repo: self
 
 variables:
-  tag: '$(Build.BuildId)'
+  tag: "$(Build.BuildId)"
 
 stages:
-- stage: Build
-  displayName: Build image
-  jobs:
-  - job: Build
-    displayName: Build
-    pool: Default
-    steps:
-    - task: Docker@2
-      displayName: Build and push image
-      inputs:
-        containerRegistry: 'Docker Registry Service'
-        repository: 'maciejsolowiej/emailserviceapi'
-        command: 'buildAndPush'
-        Dockerfile: '**/Dockerfile'
-        tags: |
-          $(tag)
+  - stage: Build
+    displayName: Build image
+    jobs:
+      - job: Build
+        displayName: Build
+        pool: Default
+        steps:
+          - task: Docker@2
+            displayName: Build and push image
+            inputs:
+              containerRegistry: "Docker Registry Service"
+              repository: "maciejsolowiej/emailserviceapi"
+              command: "buildAndPush"
+              Dockerfile: "**/Dockerfile"
+              tags: |
+                $(tag)
+  - stage: "Provision"
+    displayName: "Create teraform image on Azure"
+    dependsOn: "Build"
+    jobs:
+      - job: Provision
+        displayName: "Provision container"
+        pool: Default
+        variables:
+          - group: EmailServiceVariables
+        steps:
+          - script: |
+              set -e
+              terraform init -input=false
+              terraform apply -input=false -auto-approve
+            name: "RunTerraform"
+            displayName: "Run terraform"
+            env:
+              ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+              ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+              ARM_TENANT_ID: $(ARM_TENANT_ID)
+              ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+              TF_VAR_imagebuild: $(tag)

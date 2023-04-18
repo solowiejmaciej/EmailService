@@ -22,6 +22,11 @@ terraform {
   }
 }
 
+variable "imagebuild" {
+  type = string
+  description = "the latest image build version"
+}
+
 resource "azurerm_resource_group" "tf_rg_emailserviceapi" {
  name = "EmailService-RG"
  location = "westeurope" 
@@ -38,7 +43,7 @@ resource "azurerm_container_group" "tf_cg_emailserviceapi" {
 
   container {
     name = "emailserviceapi"
-    image = "maciejsolowiej/emailserviceapi"
+    image = "maciejsolowiej/emailserviceapi:${var.imagebuild}"
     cpu = "1"
     memory = "1"
 
