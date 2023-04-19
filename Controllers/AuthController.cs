@@ -2,7 +2,6 @@
 using EmailService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
 
 namespace EmailService.Controllers
 {
@@ -22,7 +21,7 @@ namespace EmailService.Controllers
             var token = _authService.GenerateJWT(user);
             return Ok(token);
         }
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpPost("AddNewUser")]
         public ActionResult AddUser(UserDto user)
         {

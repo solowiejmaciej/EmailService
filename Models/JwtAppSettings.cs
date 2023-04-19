@@ -1,4 +1,4 @@
-﻿namespace EmailService
+﻿namespace EmailService.Models
 {
     public class JwtAppSettings
     {

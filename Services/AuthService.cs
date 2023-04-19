@@ -2,6 +2,7 @@
 using EmailService.Exceptions;
 using EmailService.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -11,7 +12,7 @@ namespace EmailService.Services;
 
 public interface IAuthService
 {
-    string GenerateJWT(UserDto user);
+    TokenResponse GenerateJWT(UserDto user);
 
     void AddNewUser(UserDto user);
 }
@@ -44,9 +45,10 @@ public class AuthService : IAuthService
         _dbcontext.SaveChanges();
     }
 
-    public string GenerateJWT(UserDto dto)
+    public TokenResponse GenerateJWT(UserDto dto)
     {
         var user = _dbcontext.Users
+                    .Include(u => u.Role)
                     .FirstOrDefault(x => x.Login == dto.Login);
         if (user is null)
         {
@@ -62,7 +64,8 @@ public class AuthService : IAuthService
         var claims = new List<Claim>()
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Login)
+                new Claim(ClaimTypes.Email, user.Login.ToString()),
+                new Claim(ClaimTypes.Role, $"{user.Role.Name}")
             };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtAppSettings.JwtKey));
@@ -75,7 +78,16 @@ public class AuthService : IAuthService
             signingCredentials: cred);
         var tokenHandler = new JwtSecurityTokenHandler();
 
-        return tokenHandler.WriteToken(token);
+        var response = new TokenResponse()
+        {
+            Token = tokenHandler.WriteToken(token),
+            StatusCode = 200,
+            IssuedDate = DateTime.UtcNow,
+            ExpiresAt = expires,
+            Role = user.Role.Name
+        };
+
+        return response;
 
     }
 }

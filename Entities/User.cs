@@ -6,5 +6,7 @@
         public string Login { get ; set; }
         public string PasswordHashed { get; set; }
         public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        public int? RoleId { get; set; } = 1;
+        public virtual Role Role { get; set; }
     }
 }
