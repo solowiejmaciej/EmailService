@@ -1,7 +1,7 @@
 ﻿using EmailService.Entities;
 using EmailService.Models;
 
-namespace EmailService;
+namespace EmailService.Services;
 
 public interface IEmailSenderService
 {

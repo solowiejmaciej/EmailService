@@ -8,13 +8,18 @@ using FluentValidation;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using EmailService.Services;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .Build();
+
+var appSettings = new JwtAppSettings();
+
+configuration.GetSection("Auth").Bind(appSettings);
 
 var hangfireConfig = configuration.GetSection("HangfireSettings");
 // Add services to the container.
@@ -33,18 +38,27 @@ builder.Services.AddHangfire(config => config
     .UseSqlServerStorage(builder.Configuration.GetConnectionString("Hangfire"))
 );
 
-builder.Services.AddHangfireServer();
 
 var smtpConfig = builder.Configuration.GetSection(nameof(SMTPConfig));
 
-builder.Services.Configure<SMTPConfig>(smtpConfig);
+//My services
+builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddTransient<IEmailSenderService, EmailSenderService>();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
+//Middleware
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
+
+//Helpers
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddScoped<IValidator<EmailDto>, EmailDtoValidation>();
+builder.Services.AddHangfireServer();
+
+//Config
+builder.Services.Configure<SMTPConfig>(smtpConfig);
+builder.Services.AddSingleton(appSettings);
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

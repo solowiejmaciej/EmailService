@@ -9,5 +9,6 @@ namespace EmailService.Entities
         }
 
         public DbSet<Email> Emails { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

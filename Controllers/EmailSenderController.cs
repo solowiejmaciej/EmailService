@@ -1,4 +1,5 @@
 using EmailService.Models;
+using EmailService.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmailService.Controllers
