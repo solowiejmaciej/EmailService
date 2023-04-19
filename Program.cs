@@ -8,13 +8,22 @@ using FluentValidation;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using EmailService.Services;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .Build();
+
+var appSettings = new JwtAppSettings();
+
+configuration.GetSection("Auth").Bind(appSettings);
 
 var hangfireConfig = configuration.GetSection("HangfireSettings");
 // Add services to the container.
@@ -33,34 +42,93 @@ builder.Services.AddHangfire(config => config
     .UseSqlServerStorage(builder.Configuration.GetConnectionString("Hangfire"))
 );
 
-builder.Services.AddHangfireServer();
 
 var smtpConfig = builder.Configuration.GetSection(nameof(SMTPConfig));
 
-builder.Services.Configure<SMTPConfig>(smtpConfig);
+//My services
+builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
-builder.Services.AddTransient<IEmailSenderService, EmailSenderService>();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
+//Middleware
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
+
+//Helpers
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddScoped<IValidator<EmailDto>, EmailDtoValidation>();
+builder.Services.AddHangfireServer();
+
+//Config
+builder.Services.Configure<SMTPConfig>(smtpConfig);
+builder.Services.AddSingleton(appSettings);
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 builder.Services.AddHealthChecks();
 
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EmailService", Version = "v1" });
+
+    // Konfiguracja autoryzacji JWT
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "JWT Authentication",
+        Description = "Enter JWT Bearer token **_only_**",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Id = JwtBearerDefaults.AuthenticationScheme,
+            Type = ReferenceType.SecurityScheme
+        }
+    };
+    c.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { securityScheme, new string[] { } }
+    });
+
+});
+
+builder.Services.AddAuthentication(option =>
+{
+    option.DefaultAuthenticateScheme = "Bearer";
+    option.DefaultScheme = "Bearer";
+    option.DefaultChallengeScheme = "Bearer";
+}).AddJwtBearer(cfg =>
+{
+    cfg.RequireHttpsMetadata = false;
+    cfg.SaveToken = true;
+    cfg.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = appSettings.JwtIssuer,
+        ValidAudience = appSettings.JwtIssuer,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSettings.JwtKey)),
+    };
+});
+
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseAuthentication();
 app.UseHttpsRedirection();
 app.UseAuthorization();
+
+
 
 app.UseHangfireDashboard("/hangfire", new DashboardOptions()
 {

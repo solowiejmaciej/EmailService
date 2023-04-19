@@ -7,7 +7,8 @@ namespace EmailService.Entities
         public EmailsDbContext(DbContextOptions<EmailsDbContext> options) : base(options)
         {
         }
-
+        public DbSet<Role> Roles { get; set; }
         public DbSet<Email> Emails { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }

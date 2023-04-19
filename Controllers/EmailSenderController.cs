@@ -1,18 +1,19 @@
 using EmailService.Models;
+using EmailService.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmailService.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class EmailSenderController : ControllerBase
     {
-        private readonly ILogger<EmailSenderController> _logger;
         private readonly IEmailSenderService _emailSenderService;
 
-        public EmailSenderController(ILogger<EmailSenderController> logger, IEmailSenderService emailSenderService)
+        public EmailSenderController(IEmailSenderService emailSenderService)
         {
-            _logger = logger;
             _emailSenderService = emailSenderService;
         }
 
