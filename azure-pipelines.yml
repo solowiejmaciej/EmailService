@@ -34,7 +34,7 @@ stages:
     jobs:
       - job: Provision
         displayName: "Provision container"
-        pool: Default
+        pool: Azure Pipelines
         variables:
           - group: TF_EmailService
         steps:
