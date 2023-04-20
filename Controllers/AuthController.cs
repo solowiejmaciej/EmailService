@@ -1,4 +1,5 @@
-﻿using EmailService.Models;
+﻿using System.Net;
+using EmailService.Models;
 using EmailService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ namespace EmailService.Controllers
     public class AuthController : ControllerBase
     {
         private IAuthService _authService;
+
         public AuthController(IAuthService authService)
         {
             _authService = authService;
@@ -21,6 +23,7 @@ namespace EmailService.Controllers
             var token = _authService.GenerateJWT(user);
             return Ok(token);
         }
+
         [Authorize(Roles = "Admin")]
         [HttpPost("AddNewUser")]
         public ActionResult AddUser(UserDto user)
@@ -28,6 +31,5 @@ namespace EmailService.Controllers
             _authService.AddNewUser(user);
             return NoContent();
         }
-
     }
 }

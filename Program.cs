@@ -22,28 +22,23 @@ var configuration = new ConfigurationBuilder()
     .Build();
 
 var appSettings = new JwtAppSettings();
+var smtpConfig = builder.Configuration.GetSection(nameof(SMTPConfig));
+var hangfireConfig = configuration.GetSection("HangfireSettings");
 
 configuration.GetSection("Auth").Bind(appSettings);
-
-var hangfireConfig = configuration.GetSection("HangfireSettings");
 // Add services to the container.
-
-builder.Services.AddLogging();
-builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
 
 builder.Services.AddDbContext<EmailsDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("App"));
 });
+builder.Services.AddScoped<Seeder>();
 
 builder.Services.AddHangfire(config => config
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
     .UseSqlServerStorage(builder.Configuration.GetConnectionString("Hangfire"))
 );
-
-
-var smtpConfig = builder.Configuration.GetSection(nameof(SMTPConfig));
 
 //My services
 builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
@@ -56,20 +51,20 @@ builder.Services.AddScoped<ErrorHandlingMiddleware>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddScoped<IValidator<EmailDto>, EmailDtoValidation>();
 builder.Services.AddHangfireServer();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddLogging();
+builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
 
 //Config
 builder.Services.Configure<SMTPConfig>(smtpConfig);
 builder.Services.AddSingleton(appSettings);
-
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddHealthChecks();
-
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -96,7 +91,6 @@ builder.Services.AddSwaggerGen(c =>
     {
         { securityScheme, new string[] { } }
     });
-
 });
 
 builder.Services.AddAuthentication(option =>
@@ -118,7 +112,6 @@ builder.Services.AddAuthentication(option =>
 
 var app = builder.Build();
 
-
 // Configure the HTTP request pipeline.
 
 app.UseSwagger();
@@ -127,8 +120,6 @@ app.UseSwaggerUI();
 app.UseAuthentication();
 app.UseHttpsRedirection();
 app.UseAuthorization();
-
-
 
 app.UseHangfireDashboard("/hangfire", new DashboardOptions()
 {
@@ -151,4 +142,15 @@ app.MapHealthChecks("/health");
 
 app.MapControllers();
 
+SeedDatabase();
+
 app.Run();
+
+void SeedDatabase() //can be placed at the very bottom under app.Run()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitializer = scope.ServiceProvider.GetRequiredService<Seeder>();
+        dbInitializer.Seed();
+    }
+}
