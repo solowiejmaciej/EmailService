@@ -3,17 +3,17 @@ using EmailService.Entities;
 using EmailService.Middleware;
 using EmailService.Models;
 using EmailService.Models.Validation;
-using FluentValidation.AspNetCore;
+using EmailService.Services;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
-using Microsoft.EntityFrameworkCore;
-using EmailService.Services;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,28 +21,26 @@ var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .Build();
 
-var appSettings = new JwtAppSettings();
-var smtpConfig = builder.Configuration.GetSection(nameof(SMTPConfig));
+var smtpConfig = configuration.GetSection(nameof(SMTPConfig));
 var hangfireConfig = configuration.GetSection("HangfireSettings");
 
-configuration.GetSection("Auth").Bind(appSettings);
+var jwtAppSettings = new JwtAppSettings();
+configuration.GetSection("Auth").Bind(jwtAppSettings);
 // Add services to the container.
 
 builder.Services.AddDbContext<EmailsDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("App"));
+    options.UseSqlServer(configuration.GetConnectionString("App"));
 });
-builder.Services.AddScoped<Seeder>();
 
 builder.Services.AddHangfire(config => config
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(builder.Configuration.GetConnectionString("Hangfire"))
+    .UseSqlServerStorage(configuration.GetConnectionString("Hangfire"))
 );
 
 //My services
 builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
 
 //Middleware
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
@@ -58,7 +56,6 @@ builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogL
 
 //Config
 builder.Services.Configure<SMTPConfig>(smtpConfig);
-builder.Services.AddSingleton(appSettings);
 
 builder.Services.AddControllers();
 
@@ -100,15 +97,21 @@ builder.Services.AddAuthentication(option =>
     option.DefaultChallengeScheme = "Bearer";
 }).AddJwtBearer(cfg =>
 {
+    RSA rsa = RSA.Create();
+    rsa.ImportSubjectPublicKeyInfo(
+        source: Convert.FromBase64String(jwtAppSettings.JwtPublicKey),
+        bytesRead: out int _
+    );
     cfg.RequireHttpsMetadata = false;
     cfg.SaveToken = true;
     cfg.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidIssuer = appSettings.JwtIssuer,
-        ValidAudience = appSettings.JwtIssuer,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appSettings.JwtKey)),
+        ValidIssuer = jwtAppSettings.JwtIssuer,
+        ValidAudience = jwtAppSettings.JwtIssuer,
+        IssuerSigningKey = new RsaSecurityKey(rsa),
     };
 });
+builder.Services.AddSingleton(jwtAppSettings);
 
 var app = builder.Build();
 
@@ -142,15 +145,4 @@ app.MapHealthChecks("/health");
 
 app.MapControllers();
 
-SeedDatabase();
-
 app.Run();
-
-void SeedDatabase() //can be placed at the very bottom under app.Run()
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbInitializer = scope.ServiceProvider.GetRequiredService<Seeder>();
-        dbInitializer.Seed();
-    }
-}
