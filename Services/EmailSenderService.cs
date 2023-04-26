@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Security.Claims;
+using AuthService;
+using AutoMapper;
 using EmailService.Entities;
 using EmailService.Exceptions;
 using EmailService.Models;
@@ -13,13 +15,15 @@ public class EmailSenderService : IEmailSenderService
     private readonly EmailsDbContext _dbContext;
     private readonly ILogger<EmailSenderService> _logger;
     private readonly IMapper _mapper;
+    private readonly IUserContext _userContext;
     private readonly SMTPConfig _config;
 
-    public EmailSenderService(EmailsDbContext dbContext, ILogger<EmailSenderService> logger, IOptions<SMTPConfig> config, IMapper mapper)
+    public EmailSenderService(EmailsDbContext dbContext, ILogger<EmailSenderService> logger, IOptions<SMTPConfig> config, IMapper mapper, IUserContext userContext)
     {
         _dbContext = dbContext;
         _logger = logger;
         _mapper = mapper;
+        _userContext = userContext;
         _config = config.Value;
     }
 

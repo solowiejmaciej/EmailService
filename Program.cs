@@ -1,3 +1,5 @@
+using AuthService;
+using AutoMapper;
 using EmailService;
 using EmailService.Entities;
 using EmailService.Middleware;
@@ -14,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Cryptography;
+using EmailService.MappingProfiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +43,7 @@ builder.Services.AddHangfire(config => config
 );
 
 //My services
+builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
 
 //Middleware
@@ -49,10 +53,17 @@ builder.Services.AddScoped<ErrorHandlingMiddleware>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddScoped<IValidator<EmailDto>, EmailDtoValidation>();
 builder.Services.AddHangfireServer();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped(provider => new MapperConfiguration(cfg =>
+{
+    var scope = provider.CreateScope();
+    var userContext = scope.ServiceProvider.GetRequiredService<IUserContext>();
+    cfg.AddProfile(new EmailMappingProfile(userContext));
+}).CreateMapper()
+);
+
 builder.Services.AddLogging();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+builder.Services.AddHttpContextAccessor();
 
 //Config
 builder.Services.Configure<SMTPConfig>(smtpConfig);
@@ -116,7 +127,7 @@ builder.Services.AddSingleton(jwtAppSettings);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
