@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using EmailService.Models;
 using EmailService.Services;
 using Microsoft.AspNetCore.Authorization;
