@@ -19,12 +19,8 @@ namespace AuthService
         public CurrentUser? GetCurrentUser()
         {
             var user = _httpContextAccessor?.HttpContext?.User;
-            if (user == null)
-            {
-                throw new InvalidOperationException("Context user does not exists");
-            }
 
-            if (user.Identity == null || !user.Identity.IsAuthenticated)
+            if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
             {
                 return null;
             }

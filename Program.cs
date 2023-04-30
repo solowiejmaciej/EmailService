@@ -45,6 +45,7 @@ builder.Services.AddHangfire(config => config
 //My services
 builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
+builder.Services.AddScoped<IEmailDataService, EmailDataService>();
 
 //Middleware
 builder.Services.AddScoped<ErrorHandlingMiddleware>();

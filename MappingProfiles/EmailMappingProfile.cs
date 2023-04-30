@@ -2,7 +2,6 @@
 using AutoMapper;
 using EmailService.Entities;
 using EmailService.Models;
-using Microsoft.Extensions.Options;
 
 namespace EmailService.MappingProfiles
 {
