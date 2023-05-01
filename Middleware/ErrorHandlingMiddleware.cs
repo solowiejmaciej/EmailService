@@ -22,7 +22,7 @@ namespace EmailService.Middleware
             {
                 _logger.LogError(badRequestException, badRequestException.Message);
                 context.Response.StatusCode = 400;
-                context.Response.WriteAsync(badRequestException.Message);
+                await context.Response.WriteAsync(badRequestException.Message);
             }
             catch (NotFoundException notFoundException)
             {

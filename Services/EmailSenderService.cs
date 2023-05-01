@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using AuthService;
-using AutoMapper;
+﻿using AutoMapper;
 using EmailService.Entities;
 using EmailService.Exceptions;
 using EmailService.Models;
@@ -10,20 +8,27 @@ using MimeKit;
 
 namespace EmailService.Services;
 
+public interface IEmailSenderService
+{
+    Task SendEmailNow(EmailDto email);
+
+    Task AddTestEmail();
+
+    Task<Task> SendInBackground();
+}
+
 public class EmailSenderService : IEmailSenderService
 {
     private readonly EmailsDbContext _dbContext;
     private readonly ILogger<EmailSenderService> _logger;
-    private readonly IMapper _mapper;
-    private readonly IUserContext _userContext;
+    private readonly IEmailDataService _emailDataService;
     private readonly SMTPConfig _config;
 
-    public EmailSenderService(EmailsDbContext dbContext, ILogger<EmailSenderService> logger, IOptions<SMTPConfig> config, IMapper mapper, IUserContext userContext)
+    public EmailSenderService(EmailsDbContext dbContext, ILogger<EmailSenderService> logger, IOptions<SMTPConfig> config, IMapper mapper, IEmailDataService emailDataService)
     {
         _dbContext = dbContext;
         _logger = logger;
-        _mapper = mapper;
-        _userContext = userContext;
+        _emailDataService = emailDataService;
         _config = config.Value;
     }
 
@@ -36,6 +41,8 @@ public class EmailSenderService : IEmailSenderService
             EmailTo = "maciejsol1926@gmail.com",
             Subject = "Test email from invoking hangfire job",
             EmailSenderName = "Test email",
+            CreatedById = 0,
+            IsDeleted = false,
         };
         await _dbContext.AddAsync(exampleMail);
         await _dbContext.SaveChangesAsync();
@@ -45,7 +52,7 @@ public class EmailSenderService : IEmailSenderService
     public async Task<Task> SendInBackground()
     {
         _logger.LogInformation($"{DateTime.UtcNow} || EmailService invoked");
-        var emailsToSend = _dbContext.Emails.Where(e => e.isEmailSended == false).OrderBy(e => e.CreatedAt).Take(5).ToList();
+        var emailsToSend = _dbContext.Emails.Where(e => e.isEmailSended == false && e.IsDeleted == false).OrderBy(e => e.CreatedAt).Take(5).ToList();
 
         if (!emailsToSend.Any())
         {
@@ -91,17 +98,9 @@ public class EmailSenderService : IEmailSenderService
         }
     }
 
-    public async Task<int> AddNewEmailToDbAsync(EmailDto dto)
-    {
-        var email = _mapper.Map<Email>(dto);
-        await _dbContext.AddAsync(email);
-        await _dbContext.SaveChangesAsync();
-        return email.Id;
-    }
-
     public async Task SendEmailNow(EmailDto dto)
     {
-        var id = await AddNewEmailToDbAsync(dto);
+        var id = await _emailDataService.AddNewEmailToDbAsync(dto);
         await Send(id);
     }
 }

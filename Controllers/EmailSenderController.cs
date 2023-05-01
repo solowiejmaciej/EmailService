@@ -18,14 +18,6 @@ namespace EmailService.Controllers
             _emailSenderService = emailSenderService;
         }
 
-        [Route("AddNewEmailToDb")]
-        [HttpPost]
-        public async Task<IActionResult> AddNewEmailToDb(EmailDto email)
-        {
-            await _emailSenderService.AddNewEmailToDbAsync(email);
-            return Ok(email);
-        }
-
         [Route("SendEmailNow")]
         [HttpPost]
         public async Task<IActionResult> SendEmailNow(EmailDto email)
