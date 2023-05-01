@@ -1,12 +1,14 @@
 ﻿using EmailService.Entities;
 using EmailService.Models;
 using EmailService.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace EmailService.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class EmailsController : ControllerBase
@@ -38,6 +40,7 @@ namespace EmailService.Controllers
             return Ok(email);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {

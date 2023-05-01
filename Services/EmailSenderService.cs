@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using AuthService;
-using AutoMapper;
+﻿using AutoMapper;
 using EmailService.Entities;
 using EmailService.Exceptions;
 using EmailService.Models;
@@ -12,10 +10,6 @@ namespace EmailService.Services;
 
 public interface IEmailSenderService
 {
-    private async Task Send(Email email)
-    {
-    }
-
     Task SendEmailNow(EmailDto email);
 
     Task AddTestEmail();
@@ -48,6 +42,7 @@ public class EmailSenderService : IEmailSenderService
             Subject = "Test email from invoking hangfire job",
             EmailSenderName = "Test email",
             CreatedById = 0,
+            IsDeleted = false,
         };
         await _dbContext.AddAsync(exampleMail);
         await _dbContext.SaveChangesAsync();
@@ -57,7 +52,7 @@ public class EmailSenderService : IEmailSenderService
     public async Task<Task> SendInBackground()
     {
         _logger.LogInformation($"{DateTime.UtcNow} || EmailService invoked");
-        var emailsToSend = _dbContext.Emails.Where(e => e.isEmailSended == false).OrderBy(e => e.CreatedAt).Take(5).ToList();
+        var emailsToSend = _dbContext.Emails.Where(e => e.isEmailSended == false && e.IsDeleted == false).OrderBy(e => e.CreatedAt).Take(5).ToList();
 
         if (!emailsToSend.Any())
         {

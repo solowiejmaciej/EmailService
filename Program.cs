@@ -11,12 +11,12 @@ using FluentValidation.AspNetCore;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Cryptography;
 using EmailService.MappingProfiles;
+using EmailService.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +24,7 @@ var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .Build();
 
+var redisOptions = configuration.GetSection(nameof(RedisSettings));
 var smtpConfig = configuration.GetSection(nameof(SMTPConfig));
 var hangfireConfig = configuration.GetSection("HangfireSettings");
 
@@ -31,16 +32,23 @@ var jwtAppSettings = new JwtAppSettings();
 configuration.GetSection("Auth").Bind(jwtAppSettings);
 // Add services to the container.
 
+//Db
 builder.Services.AddDbContext<EmailsDbContext>(options =>
 {
     options.UseSqlServer(configuration.GetConnectionString("App"));
 });
+builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddScoped<IEmailsRepository, EmailsRepository>();
 
+//Hangfire
 builder.Services.AddHangfire(config => config
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
     .UseSqlServerStorage(configuration.GetConnectionString("Hangfire"))
 );
+//Config
+builder.Services.Configure<SMTPConfig>(smtpConfig);
+builder.Services.Configure<RedisSettings>(redisOptions);
 
 //My services
 builder.Services.AddScoped<IUserContext, UserContext>();
@@ -65,9 +73,6 @@ builder.Services.AddScoped(provider => new MapperConfiguration(cfg =>
 builder.Services.AddLogging();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
 builder.Services.AddHttpContextAccessor();
-
-//Config
-builder.Services.Configure<SMTPConfig>(smtpConfig);
 
 builder.Services.AddControllers();
 
@@ -118,8 +123,8 @@ builder.Services.AddAuthentication(option =>
     cfg.SaveToken = true;
     cfg.TokenValidationParameters = new TokenValidationParameters
     {
+        ValidateAudience = false,
         ValidIssuer = jwtAppSettings.JwtIssuer,
-        ValidAudience = jwtAppSettings.JwtIssuer,
         IssuerSigningKey = new RsaSecurityKey(rsa),
     };
 });
@@ -152,6 +157,7 @@ app.MapHangfireDashboard();
 
 RecurringJob.AddOrUpdate<IEmailSenderService>("Send background emails job", x => x.SendInBackground(), Cron.Minutely);
 RecurringJob.AddOrUpdate<IEmailSenderService>("Add Test email to DB", x => x.AddTestEmail(), Cron.Never);
+RecurringJob.AddOrUpdate<IEmailsRepository>("Delete emails", x => x.DeleteEmails(), Cron.Never);
 
 app.MapHealthChecks("/health");
 
