@@ -46,7 +46,7 @@ Authorization Header with jwt token
 
 | Parameter | Type     | Description                |
 | :-------- | :------- | :------------------------- |
-| `creatorId` | `int` | Id of the account that created email |
+| `creatorId` | `string` | Id of the account that created email |
 
 ### Response
 
