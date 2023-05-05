@@ -366,3 +366,5 @@ FodyWeavers.xsd
 .terraform
 terraform.tfstate
 terraform.tfstate.backup
+/appsettings.Development.json
+/appsettings.json
