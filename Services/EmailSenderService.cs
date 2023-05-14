@@ -3,8 +3,10 @@ using EmailService.Entities;
 using EmailService.Exceptions;
 using EmailService.Models;
 using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace EmailService.Services;
 
@@ -41,8 +43,8 @@ public class EmailSenderService : IEmailSenderService
             EmailTo = "maciejsol1926@gmail.com",
             Subject = "Test email from invoking hangfire job",
             EmailSenderName = "Test email",
-            CreatedById = 0,
-            IsDeleted = false,
+            CreatedById = new Guid().ToString(),
+            EmailStatus = EmailStatus.New,
         };
         await _dbContext.AddAsync(exampleMail);
         await _dbContext.SaveChangesAsync();
@@ -52,7 +54,7 @@ public class EmailSenderService : IEmailSenderService
     public async Task<Task> SendInBackground()
     {
         _logger.LogInformation($"{DateTime.UtcNow} || EmailService invoked");
-        var emailsToSend = _dbContext.Emails.Where(e => e.isEmailSended == false && e.IsDeleted == false).OrderBy(e => e.CreatedAt).Take(5).ToList();
+        var emailsToSend = _dbContext.Emails.Where(e => e.EmailStatus == EmailStatus.New).OrderBy(e => e.CreatedAt).Take(5).ToList();
 
         if (!emailsToSend.Any())
         {
@@ -64,7 +66,7 @@ public class EmailSenderService : IEmailSenderService
 
         foreach (var email in emailsToSend)
         {
-            await Send(email.Id);
+            //await Send(email.Id);
         }
 
         return Task.CompletedTask;
@@ -86,16 +88,41 @@ public class EmailSenderService : IEmailSenderService
             Text = email.Body
         };
 
-        using (var smtpClient = new SmtpClient())
+        var smtpClient = new SmtpClient();
+        try
         {
             smtpClient.Connect(_config.Host, _config.Port, _config.UseSSL);
-            smtpClient.Authenticate(_config.UserName, _config.Password);
-            smtpClient.Send(_mailMessage);
-            smtpClient.Disconnect(true);
-            Console.WriteLine($"Email {email.Id} send succesfully");
-            email.isEmailSended = true;
-            await _dbContext.SaveChangesAsync();
         }
+        catch (Exception ex)
+        {
+            email.EmailStatus = EmailStatus.HasErrors;
+            _logger.LogError(ex.Message);
+        }
+
+        try
+        {
+            smtpClient.Authenticate(_config.UserName, _config.Password);
+        }
+        catch (Exception ex)
+        {
+            email.EmailStatus = EmailStatus.HasErrors;
+            _logger.LogError(ex.Message);
+        }
+
+        try
+        {
+            smtpClient.Send(_mailMessage);
+            email.EmailStatus = EmailStatus.EmailSended;
+            await _dbContext.SaveChangesAsync();
+            Console.WriteLine($"Email {email.Id} send succesfully");
+        }
+        catch (Exception ex)
+        {
+            email.EmailStatus = EmailStatus.HasErrors;
+            await _dbContext.SaveChangesAsync();
+            _logger.LogError(ex.Message);
+        }
+        smtpClient.Disconnect(true);
     }
 
     public async Task SendEmailNow(EmailDto dto)

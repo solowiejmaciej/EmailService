@@ -21,9 +21,9 @@ namespace EmailService.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Email>> GetAll(int creatorId)
+        public ActionResult<List<Email>> GetAllByCurrentUser()
         {
-            var allEmails = _emailDataService.GetAll(creatorId);
+            var allEmails = _emailDataService.GetAllByCurrentUser();
             return Ok(allEmails);
         }
 

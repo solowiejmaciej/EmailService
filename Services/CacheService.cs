@@ -24,7 +24,7 @@ namespace EmailService.Services
             var redis = ConnectionMultiplexer.Connect(new ConfigurationOptions
             {
                 EndPoints = { config.Value.Endpoints },
-                Password = "Database!2023"
+                Password = config.Value.Password
             }
             );
             _cacheDb = redis.GetDatabase();
