@@ -45,7 +45,7 @@ namespace EmailService.Repositories
 
         public void DeleteEmails()
         {
-            var emailsToDelete = _dbContext.Emails.Where(e => e.IsDeleted == true);
+            var emailsToDelete = _dbContext.Emails.Where(e => e.EmailStatus == EmailStatus.ToBeDeleted);
             _dbContext.Emails.RemoveRange(emailsToDelete);
             Save();
         }

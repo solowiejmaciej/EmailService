@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using AuthService;
+using AutoMapper;
 using EmailService.Entities;
 using EmailService.Exceptions;
 using EmailService.Models;
@@ -7,7 +8,7 @@ namespace EmailService.Services
 {
     public interface IEmailDataService
     {
-        List<Email> GetAll(int creatorId);
+        List<Email> GetAllByCurrentUser();
 
         Email GetById(int id);
 
@@ -22,20 +23,33 @@ namespace EmailService.Services
         private readonly ILogger<EmailSenderService> _logger;
         private readonly IMapper _mapper;
         private readonly ICacheService _cache;
+        private readonly IUserContext _userContext;
 
-        public EmailDataService(EmailsDbContext dbContext, ILogger<EmailSenderService> logger, IMapper mapper, ICacheService cache)
+        public EmailDataService(EmailsDbContext dbContext,
+            ILogger<EmailSenderService> logger,
+            IMapper mapper,
+            ICacheService cache,
+            IUserContext userContext)
         {
             _dbContext = dbContext;
             _logger = logger;
             _mapper = mapper;
             _cache = cache;
+            _userContext = userContext;
         }
 
-        private List<Email> GetAllEmails()
+        public List<Email> GetAllEmails()
         {
-            //Check cache data
+            var emails = _dbContext.Emails.Where(e => e.EmailStatus != EmailStatus.ToBeDeleted).ToList();
+            return emails;
+        }
 
-            var cacheData = _cache.GetData<List<Email>>("Emails");
+        public List<Email> GetAllByCurrentUser()
+        {
+            var currentUser = _userContext.GetCurrentUser();
+
+            //Check cache data
+            var cacheData = _cache.GetData<List<Email>>("Emails" + currentUser.Id);
 
             //If there is something with the key "Emails", then return it to the user
             if (cacheData != null && cacheData.Any())
@@ -46,29 +60,17 @@ namespace EmailService.Services
             //Set the expiry time and set the data for the future usage
             var expiryTime = DateTimeOffset.Now.AddMinutes(1);
 
-            var emails = _dbContext.Emails.Where(e => e.IsDeleted == false).ToList();
+            var emails = _dbContext.Emails.Where(e => e.EmailStatus != EmailStatus.ToBeDeleted && e.CreatedById == currentUser.Id).ToList();
 
-            _cache.SetData<List<Email>>("Emails", emails, expiryTime);
+            _cache.SetData<List<Email>>("Emails" + currentUser.Id, emails, expiryTime);
 
             //return straight from db
             return emails;
         }
 
-        public List<Email> GetAll(int creatorId)
-        {
-            if (creatorId == 0)
-            {
-                var allEmailsFromDb = GetAllEmails().ToList();
-                return allEmailsFromDb;
-            }
-
-            return GetByCreatorId(creatorId);
-            
-        }
-
         public Email GetById(int id)
         {
-            var email = GetAllEmails().FirstOrDefault(x => x.Id == id);
+            var email = GetAllByCurrentUser().FirstOrDefault(x => x.Id == id);
             if (email == null)
             {
                 throw new NotFoundException($"Email with id {id} not found");
@@ -76,25 +78,25 @@ namespace EmailService.Services
             return email;
         }
 
-        private List<Email> GetByCreatorId(int creatorId)
+        private List<Email> GetByCreatorId(string creatorId)
         {
             var creator = _dbContext.Users.FirstOrDefault(u => u.Id == creatorId);
             if (creator == null)
             {
                 throw new NotFoundException($"User with id {creatorId} not found");
             }
-            var emails = GetAllEmails().Where(e => e.CreatedById == creatorId).ToList();
+            var emails = GetAllEmails().Where(e => e.CreatedById.Equals(creatorId)).ToList();
             return emails;
         }
 
         public void SoftDelete(int id)
         {
-            var emailToDelete = GetAllEmails().FirstOrDefault(e => e.Id == id);
+            var emailToDelete = GetAllByCurrentUser().FirstOrDefault(e => e.Id == id);
             if (emailToDelete == null)
             {
                 throw new NotFoundException($"Email with id {id} not found");
             }
-            emailToDelete.IsDeleted = true;
+            emailToDelete.EmailStatus = EmailStatus.ToBeDeleted;
             _dbContext.SaveChanges();
             _cache.RemoveData("Emails");
             _logger.LogInformation($"Email with Id {id} marked as deleted");
@@ -105,7 +107,7 @@ namespace EmailService.Services
             var email = _mapper.Map<Email>(dto);
             await _dbContext.AddAsync(email);
             await _dbContext.SaveChangesAsync();
-            _cache.RemoveData("Emails");
+            _cache.RemoveData("Emails" + _userContext.GetCurrentUser().Id);
             return email.Id;
         }
     }

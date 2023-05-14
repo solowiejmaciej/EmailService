@@ -4,6 +4,7 @@ using EmailService.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BackgroundEmailServiceTest.Migrations
 {
     [DbContext(typeof(EmailsDbContext))]
-    partial class EmailsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230503155059_HasErrorsFieldAdded")]
+    partial class HasErrorsFieldAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,8 +40,8 @@ namespace BackgroundEmailServiceTest.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CreatedById")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("int");
 
                     b.Property<string>("EmailFrom")
                         .IsRequired()
@@ -47,16 +50,22 @@ namespace BackgroundEmailServiceTest.Migrations
                     b.Property<string>("EmailSenderName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("EmailStatus")
-                        .HasColumnType("int");
-
                     b.Property<string>("EmailTo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("HasErrors")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("isEmailSended")
+                        .HasColumnType("bit");
 
                     b.HasKey("Id");
 
