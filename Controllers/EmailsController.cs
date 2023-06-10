@@ -34,7 +34,7 @@ namespace EmailService.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(EmailDto email)
+        public async Task<IActionResult> Add(EmailRequest email)
         {
             await _emailDataService.AddNewEmailToDbAsync(email);
             return Ok(email);
@@ -46,6 +46,14 @@ namespace EmailService.Controllers
         {
             _emailDataService.SoftDelete(id);
             return Ok();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("All")]
+        public IActionResult GetAllEmails()
+        {
+            var emails = _emailDataService.GetAllEmails();
+            return Ok(emails);
         }
     }
 }

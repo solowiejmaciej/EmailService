@@ -1,10 +1,10 @@
 ﻿using System.Security.Claims;
 
-namespace AuthService
+namespace EmailService.ApplicationUser
 {
     public interface IUserContext
     {
-        CurrentUser? GetCurrentUser();
+        CurrentUser GetCurrentUser();
     }
 
     public class UserContext : IUserContext
@@ -16,13 +16,13 @@ namespace AuthService
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public CurrentUser? GetCurrentUser()
+        public CurrentUser GetCurrentUser()
         {
             var user = _httpContextAccessor?.HttpContext?.User;
 
             if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
             {
-                return null;
+                return null!;
             }
 
             var userName = user.Identity.Name!;

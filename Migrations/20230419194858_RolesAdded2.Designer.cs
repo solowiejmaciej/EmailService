@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BackgroundEmailServiceTest.Migrations
 {
-    [DbContext(typeof(EmailsDbContext))]
+    [DbContext(typeof(NotificationDbContext))]
     [Migration("20230419194858_RolesAdded2")]
     partial class RolesAdded2
     {

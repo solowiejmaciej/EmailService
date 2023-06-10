@@ -20,7 +20,7 @@ namespace EmailService.Controllers
 
         [Route("SendEmailNow")]
         [HttpPost]
-        public async Task<IActionResult> SendEmailNow(EmailDto email)
+        public async Task<IActionResult> SendEmailNow(EmailRequest email)
         {
             await _emailSenderService.SendEmailNow(email);
             return Ok(email);

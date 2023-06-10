@@ -17,7 +17,7 @@
         public string EmailFrom { get; set; }
         public string Body { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public string? CreatedById { get; set; }
         public EmailStatus EmailStatus { get; set; }
+        public string? CreatedById { get; set; }
     }
 }
