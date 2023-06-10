@@ -12,7 +12,7 @@ namespace EmailService.Services;
 
 public interface IEmailSenderService
 {
-    Task SendEmailNow(EmailDto email);
+    Task SendEmailNow(EmailRequest email);
 
     Task AddTestEmail();
 
@@ -21,12 +21,12 @@ public interface IEmailSenderService
 
 public class EmailSenderService : IEmailSenderService
 {
-    private readonly EmailsDbContext _dbContext;
+    private readonly NotificationDbContext _dbContext;
     private readonly ILogger<EmailSenderService> _logger;
     private readonly IEmailDataService _emailDataService;
     private readonly SMTPConfig _config;
 
-    public EmailSenderService(EmailsDbContext dbContext, ILogger<EmailSenderService> logger, IOptions<SMTPConfig> config, IMapper mapper, IEmailDataService emailDataService)
+    public EmailSenderService(NotificationDbContext dbContext, ILogger<EmailSenderService> logger, IOptions<SMTPConfig> config, IMapper mapper, IEmailDataService emailDataService)
     {
         _dbContext = dbContext;
         _logger = logger;
@@ -125,7 +125,7 @@ public class EmailSenderService : IEmailSenderService
         smtpClient.Disconnect(true);
     }
 
-    public async Task SendEmailNow(EmailDto dto)
+    public async Task SendEmailNow(EmailRequest dto)
     {
         var id = await _emailDataService.AddNewEmailToDbAsync(dto);
         await Send(id);

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace BackgroundEmailServiceTest.Migrations
 {
-    [DbContext(typeof(EmailsDbContext))]
+    [DbContext(typeof(NotificationDbContext))]
     [Migration("20230505213032_CreatedByIdToString")]
     partial class CreatedByIdToString
     {

@@ -1,74 +1,22 @@
-using AuthService;
-using AutoMapper;
-using EmailService;
-using EmailService.Entities;
 using EmailService.Middleware;
-using EmailService.Models;
-using EmailService.Models.Validation;
 using EmailService.Services;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Security.Cryptography;
-using EmailService.MappingProfiles;
 using EmailService.Repositories;
+using AuthService.Extensions;
+
+using EmailService.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEmailService();
 
-var configuration = new ConfigurationBuilder()
+var notificationAppSettings = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .Build();
 
-var redisOptions = configuration.GetSection(nameof(RedisSettings));
-var smtpConfig = configuration.GetSection(nameof(SMTPConfig));
-var hangfireConfig = configuration.GetSection("HangfireSettings");
-
-var jwtAppSettings = new JwtAppSettings();
-configuration.GetSection("Auth").Bind(jwtAppSettings);
-// Add services to the container.
-
-//Db
-builder.Services.AddDbContext<EmailsDbContext>(options =>
-{
-    options.UseSqlServer(configuration.GetConnectionString("App"));
-});
-builder.Services.AddScoped<ICacheService, CacheService>();
-builder.Services.AddScoped<IEmailsRepository, EmailsRepository>();
-
-//Hangfire
-builder.Services.AddHangfire(config => config
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(configuration.GetConnectionString("Hangfire"))
-);
-//Config
-builder.Services.Configure<SMTPConfig>(smtpConfig);
-builder.Services.Configure<RedisSettings>(redisOptions);
-
-//My services
-builder.Services.AddScoped<IUserContext, UserContext>();
-builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
-builder.Services.AddScoped<IEmailDataService, EmailDataService>();
-
-//Middleware
-builder.Services.AddScoped<ErrorHandlingMiddleware>();
-
-//Helpers
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddScoped<IValidator<EmailDto>, EmailDtoValidation>();
-builder.Services.AddHangfireServer();
-builder.Services.AddScoped(provider => new MapperConfiguration(cfg =>
-{
-    var scope = provider.CreateScope();
-    var userContext = scope.ServiceProvider.GetRequiredService<IUserContext>();
-    cfg.AddProfile(new EmailMappingProfile(userContext));
-}).CreateMapper()
-);
+var hangfireConfig = notificationAppSettings.GetSection("HangfireSettings");
 
 builder.Services.AddLogging();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
@@ -107,31 +55,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddAuthentication(option =>
-{
-    option.DefaultAuthenticateScheme = "Bearer";
-    option.DefaultScheme = "Bearer";
-    option.DefaultChallengeScheme = "Bearer";
-}).AddJwtBearer(cfg =>
-{
-    RSA rsa = RSA.Create();
-    rsa.ImportSubjectPublicKeyInfo(
-        source: Convert.FromBase64String(jwtAppSettings.JwtPublicKey),
-        bytesRead: out int _
-    );
-    cfg.RequireHttpsMetadata = false;
-    cfg.SaveToken = true;
-    cfg.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateAudience = false,
-        ValidIssuer = jwtAppSettings.JwtIssuer,
-        IssuerSigningKey = new RsaSecurityKey(rsa),
-    };
-});
-builder.Services.AddSingleton(jwtAppSettings);
-
 var app = builder.Build();
-
+app.UseCors();
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseSwagger();

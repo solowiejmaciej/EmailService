@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using EmailService.Models;
+using EmailService.Models.AppSettings;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
@@ -18,13 +18,15 @@ namespace EmailService.Services
     {
         private IDatabase _cacheDb;
 
-        public CacheService(IOptions<RedisSettings> config)
+        public CacheService(IOptions<RedisConfig> config)
 
         {
             var redis = ConnectionMultiplexer.Connect(new ConfigurationOptions
             {
                 EndPoints = { config.Value.Endpoints },
-                Password = config.Value.Password
+                Password = config.Value.Password,
+                //Ssl = true,
+                AbortOnConnectFail = false
             }
             );
             _cacheDb = redis.GetDatabase();

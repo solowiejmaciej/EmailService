@@ -1,92 +1,144 @@
-﻿using AuthService;
-using AutoMapper;
+﻿using AutoMapper;
+using EmailService.ApplicationUser;
 using EmailService.Entities;
 using EmailService.Exceptions;
 using EmailService.Models;
+using EmailService.Repositories;
 
 namespace EmailService.Services
 {
     public interface IEmailDataService
     {
-        List<Email> GetAllByCurrentUser();
+        List<EmailDto> GetAllByCurrentUser();
 
-        Email GetById(int id);
+        EmailDto GetById(int id);
 
         void SoftDelete(int id);
 
-        Task<int> AddNewEmailToDbAsync(EmailDto dto);
+        Task<int> AddNewEmailToDbAsync(EmailRequest dto);
+
+        List<EmailDto> GetAllEmails();
     }
 
     public class EmailDataService : IEmailDataService
     {
-        private readonly EmailsDbContext _dbContext;
+        private readonly NotificationDbContext _dbContext;
         private readonly ILogger<EmailSenderService> _logger;
         private readonly IMapper _mapper;
         private readonly ICacheService _cache;
         private readonly IUserContext _userContext;
+        private readonly IEmailsRepository _emailsRepository;
+        private readonly DateTimeOffset _exipryTime;
 
-        public EmailDataService(EmailsDbContext dbContext,
+        public EmailDataService(
+            NotificationDbContext dbContext,
             ILogger<EmailSenderService> logger,
             IMapper mapper,
             ICacheService cache,
-            IUserContext userContext)
+            IUserContext userContext,
+            IEmailsRepository emailsRepository
+            )
         {
-            _dbContext = dbContext;
             _logger = logger;
             _mapper = mapper;
             _cache = cache;
             _userContext = userContext;
+            _emailsRepository = emailsRepository;
+            _dbContext = dbContext;
+            _exipryTime = DateTimeOffset.Now.AddMinutes(1);
         }
 
-        public List<Email> GetAllEmails()
+        public List<EmailDto> GetAllEmails()
         {
-            var emails = _dbContext.Emails.Where(e => e.EmailStatus != EmailStatus.ToBeDeleted).ToList();
-            return emails;
+            var cacheData = _cache.GetData<List<EmailDto>>("AllEmails");
+            if (cacheData != null! && cacheData.Any())
+            {
+                _logger.LogInformation("Data fetched from redis");
+                return cacheData;
+            }
+
+            var emails = _emailsRepository.GetAllEmails();
+            var emailsDtos = _mapper.Map<List<EmailDto>>(emails);
+
+            _cache.SetData("AllEmails", emailsDtos, _exipryTime);
+
+            return emailsDtos;
         }
 
-        public List<Email> GetAllByCurrentUser()
+        public List<EmailDto> GetAllByCurrentUser()
         {
             var currentUser = _userContext.GetCurrentUser();
 
             //Check cache data
-            var cacheData = _cache.GetData<List<Email>>("Emails" + currentUser.Id);
+            var cacheData = _cache.GetData<List<EmailDto>>("Emails" + currentUser.Id);
 
-            //If there is something with the key "Emails", then return it to the user
-            if (cacheData != null && cacheData.Any())
+            //If there is something with the key "Emails+userid", then return it to the user
+            if (cacheData != null! && cacheData.Any())
             {
                 _logger.LogInformation("Data fetched from redis");
                 return cacheData;
             }
             //Set the expiry time and set the data for the future usage
-            var expiryTime = DateTimeOffset.Now.AddMinutes(1);
 
-            var emails = _dbContext.Emails.Where(e => e.EmailStatus != EmailStatus.ToBeDeleted && e.CreatedById == currentUser.Id).ToList();
+            var emails = _emailsRepository.GetAllEmailsByCurrentUser().ToList();
+            var dtos = _mapper.Map<List<EmailDto>>(emails);
 
-            _cache.SetData<List<Email>>("Emails" + currentUser.Id, emails, expiryTime);
+            _cache.SetData("Emails" + currentUser.Id, dtos, _exipryTime);
 
             //return straight from db
-            return emails;
+            return dtos;
         }
 
-        public Email GetById(int id)
+        public EmailDto GetById(int id)
         {
-            var email = GetAllByCurrentUser().FirstOrDefault(x => x.Id == id);
-            if (email == null)
+            var currentUser = _userContext.GetCurrentUser();
+
+            //If user isn't admin, return only this user emails
+            if (currentUser.Role != "Admin")
+            {
+                var userCacheData = _cache.GetData<EmailDto>("user" + id);
+
+                if (userCacheData != null!)
+                {
+                    _logger.LogInformation("Data fetched from redis");
+                    return userCacheData;
+                }
+
+                var userEmails = _emailsRepository.GetAllEmailsByCurrentUser();
+                var userEmail = _emailsRepository.GetEmailById(userEmails, id);
+                if (userEmail == null)
+                {
+                    throw new NotFoundException($"Email with id {id} not found");
+                }
+
+                var userDto = _mapper.Map<EmailDto>(userEmail);
+
+                _cache.SetData("user" + id, userDto, _exipryTime);
+
+                return userDto;
+            }
+            //else return all emails
+
+            var adminCacheData = _cache.GetData<EmailDto>(id.ToString());
+
+            if (adminCacheData != null!)
+            {
+                _logger.LogInformation("Data fetched from redis");
+                return adminCacheData;
+            }
+
+            var adminEmails = _emailsRepository.GetAllEmails();
+            var adminEmail = _emailsRepository.GetEmailById(adminEmails, id);
+            if (adminEmail == null)
             {
                 throw new NotFoundException($"Email with id {id} not found");
             }
-            return email;
-        }
 
-        private List<Email> GetByCreatorId(string creatorId)
-        {
-            var creator = _dbContext.Users.FirstOrDefault(u => u.Id == creatorId);
-            if (creator == null)
-            {
-                throw new NotFoundException($"User with id {creatorId} not found");
-            }
-            var emails = GetAllEmails().Where(e => e.CreatedById.Equals(creatorId)).ToList();
-            return emails;
+            var adminDto = _mapper.Map<EmailDto>(adminEmail);
+
+            _cache.SetData(id.ToString(), adminDto, _exipryTime);
+
+            return adminDto;
         }
 
         public void SoftDelete(int id)
@@ -97,16 +149,15 @@ namespace EmailService.Services
                 throw new NotFoundException($"Email with id {id} not found");
             }
             emailToDelete.EmailStatus = EmailStatus.ToBeDeleted;
-            _dbContext.SaveChanges();
+            _emailsRepository.Save();
             _cache.RemoveData("Emails");
             _logger.LogInformation($"Email with Id {id} marked as deleted");
         }
 
-        public async Task<int> AddNewEmailToDbAsync(EmailDto dto)
+        public async Task<int> AddNewEmailToDbAsync(EmailRequest dto)
         {
             var email = _mapper.Map<Email>(dto);
-            await _dbContext.AddAsync(email);
-            await _dbContext.SaveChangesAsync();
+            _emailsRepository.InsertEmail(email);
             _cache.RemoveData("Emails" + _userContext.GetCurrentUser().Id);
             return email.Id;
         }
