@@ -9,6 +9,7 @@ Simple API that allowes users to send emails and manage them
 - Cache
 - JWT Auth using AuthService
 - Email sending with SMTP
+- Push sending with Firebase
 
 
 # Built With
