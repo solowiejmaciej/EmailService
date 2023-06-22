@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
-using EmailService.Models.AppSettings;
 using Microsoft.Extensions.Options;
+using NotificationService.Models.AppSettings;
 using StackExchange.Redis;
 
-namespace EmailService.Services
+namespace NotificationService.Services
 {
     public interface ICacheService
     {

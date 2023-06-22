@@ -1,6 +1,6 @@
-﻿using EmailService.Exceptions;
+﻿using NotificationService.Exceptions;
 
-namespace EmailService.Middleware
+namespace NotificationService.Middleware
 {
     public class ErrorHandlingMiddleware : IMiddleware
 

@@ -1,21 +1,20 @@
 ﻿using AuthService.Extensions;
-using AuthService.Models;
 using AutoMapper;
-using EmailService.ApplicationUser;
-using EmailService.Entities;
-using EmailService.MappingProfiles;
-using EmailService.Middleware;
-using EmailService.Models.AppSettings;
-using EmailService.Models.Validation;
-using EmailService.Models;
-using EmailService.Repositories;
-using EmailService.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using AuthService.UserContext;
+using NotificationService.Entities;
+using NotificationService.MappingProfiles;
+using NotificationService.Middleware;
+using NotificationService.Models;
+using NotificationService.Models.AppSettings;
+using NotificationService.Models.Validation;
+using NotificationService.Repositories;
+using NotificationService.Services;
 
-namespace EmailService.Extensions
+namespace NotificationService.Extensions
 {
     public static class ServiceCollectionExtension
     {
@@ -58,8 +57,8 @@ namespace EmailService.Extensions
             services.AddScoped<IUserContext, UserContext>();
             services.AddScoped<IEmailSenderService, EmailSenderService>();
             services.AddScoped<IPushSenderService, PushSenderService>();
-            services.AddScoped<IEmailDataService, EmailDataService>();
-            services.AddScoped<IPushDataService, PushDataService>();
+            services.AddScoped<IEmailDataService, EmailService>();
+            services.AddScoped<IPushDataService, PushService>();
 
             //Middleware
             services.AddScoped<ErrorHandlingMiddleware>();

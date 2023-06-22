@@ -1,9 +1,9 @@
-﻿using AutoMapper;
-using EmailService.ApplicationUser;
-using EmailService.Entities;
-using EmailService.Models;
+﻿using AuthService.UserContext;
+using AutoMapper;
+using NotificationService.Entities;
+using NotificationService.Models;
 
-namespace EmailService.MappingProfiles
+namespace NotificationService.MappingProfiles
 {
     public class PushMappingProfile : Profile
     {

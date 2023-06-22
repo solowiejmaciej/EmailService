@@ -1,11 +1,10 @@
-﻿using AuthService.Models;
-using AuthService.Services;
+﻿using AuthService.Services;
 using AutoMapper;
-using EmailService.Entities;
-using EmailService.Models;
-using EmailService.Repositories;
+using NotificationService.Entities;
+using NotificationService.Models;
+using NotificationService.Repositories;
 
-namespace EmailService.Services
+namespace NotificationService.Services
 {
     public interface IPushDataService
     {
@@ -18,13 +17,13 @@ namespace EmailService.Services
         List<PushNotificationDto> GetAll();
     }
 
-    public class PushDataService : IPushDataService
+    public class PushService : IPushDataService
     {
         private readonly IPushRepository _pushRepository;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
 
-        public PushDataService(IPushRepository dbContext, IMapper mapper, IUserService userService)
+        public PushService(IPushRepository dbContext, IMapper mapper, IUserService userService)
         {
             _pushRepository = dbContext;
             _mapper = mapper;

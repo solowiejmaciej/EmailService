@@ -1,11 +1,11 @@
-﻿using AutoMapper;
-using EmailService.ApplicationUser;
-using EmailService.Entities;
-using EmailService.Exceptions;
-using EmailService.Models;
-using EmailService.Repositories;
+﻿using AuthService.UserContext;
+using AutoMapper;
+using NotificationService.Entities;
+using NotificationService.Exceptions;
+using NotificationService.Models;
+using NotificationService.Repositories;
 
-namespace EmailService.Services
+namespace NotificationService.Services
 {
     public interface IEmailDataService
     {
@@ -20,7 +20,7 @@ namespace EmailService.Services
         List<EmailDto> GetAllEmails();
     }
 
-    public class EmailDataService : IEmailDataService
+    public class EmailService : IEmailDataService
     {
         private readonly NotificationDbContext _dbContext;
         private readonly ILogger<EmailSenderService> _logger;
@@ -30,7 +30,7 @@ namespace EmailService.Services
         private readonly IEmailsRepository _emailsRepository;
         private readonly DateTimeOffset _exipryTime;
 
-        public EmailDataService(
+        public EmailService(
             NotificationDbContext dbContext,
             ILogger<EmailSenderService> logger,
             IMapper mapper,

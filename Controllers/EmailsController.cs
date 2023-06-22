@@ -1,12 +1,12 @@
-﻿using EmailService.Entities;
-using EmailService.Models;
-using EmailService.Services;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NotificationService.Entities;
+using NotificationService.Models;
+using NotificationService.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace EmailService.Controllers
+namespace NotificationService.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]

@@ -1,4 +1,4 @@
-﻿namespace EmailService.Models
+﻿namespace NotificationService.Models
 {
     public class PushRequest
     {

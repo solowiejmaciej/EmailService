@@ -1,13 +1,14 @@
-using EmailService.Middleware;
-using EmailService.Services;
 using Hangfire;
 using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
-using EmailService.Repositories;
-using AuthService.Extensions;
-
-using EmailService.Extensions;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using NotificationService.Extensions;
+using NotificationService.Health;
+using NotificationService.Middleware;
+using NotificationService.Repositories;
+using NotificationService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEmailService();
@@ -26,7 +27,9 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("mssqldb")
+    .AddCheck<CacheDbHealthCheck>("cache");
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -84,7 +87,10 @@ RecurringJob.AddOrUpdate<IEmailSenderService>("Send background emails job", x =>
 RecurringJob.AddOrUpdate<IEmailSenderService>("Add Test email to DB", x => x.AddTestEmail(), Cron.Never);
 RecurringJob.AddOrUpdate<IEmailsRepository>("Delete emails", x => x.DeleteEmails(), Cron.Never);
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions()
+{
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 app.MapControllers();
 

@@ -1,14 +1,13 @@
 ﻿using AutoMapper;
-using EmailService.Entities;
-using EmailService.Exceptions;
-using EmailService.Models;
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using NotificationService.Entities;
+using NotificationService.Exceptions;
+using NotificationService.Models;
+using NotificationService.Models.AppSettings;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
-namespace EmailService.Services;
+namespace NotificationService.Services;
 
 public interface IEmailSenderService
 {
@@ -66,7 +65,7 @@ public class EmailSenderService : IEmailSenderService
 
         foreach (var email in emailsToSend)
         {
-            //await Send(email.Id);
+            await Send(email.Id);
         }
 
         return Task.CompletedTask;

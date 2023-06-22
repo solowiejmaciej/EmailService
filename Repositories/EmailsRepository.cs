@@ -1,7 +1,7 @@
-﻿using EmailService.ApplicationUser;
-using EmailService.Entities;
+﻿using AuthService.UserContext;
+using NotificationService.Entities;
 
-namespace EmailService.Repositories
+namespace NotificationService.Repositories
 {
     public interface IEmailsRepository : IDisposable
     {
