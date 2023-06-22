@@ -80,7 +80,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions()
 });
 app.MapHangfireDashboard();
 
-RecurringJob.AddOrUpdate<IEmailSenderService>("Send background emails job", x => x.SendInBackground(), Cron.Minutely);
+RecurringJob.AddOrUpdate<IEmailSenderService>("Send background emails job", x => x.SendInBackground(), Cron.Never);
 RecurringJob.AddOrUpdate<IEmailSenderService>("Add Test email to DB", x => x.AddTestEmail(), Cron.Never);
 RecurringJob.AddOrUpdate<IEmailsRepository>("Delete emails", x => x.DeleteEmails(), Cron.Never);
 
