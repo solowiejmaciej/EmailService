@@ -1,9 +1,8 @@
-﻿using EmailService.Models;
-using EmailService.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using NotificationService.Models;
+using NotificationService.Services;
 
-namespace EmailService.Controllers
+namespace NotificationService.Controllers
 {
     [ApiController]
     //[Authorize]

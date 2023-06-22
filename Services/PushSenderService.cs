@@ -1,26 +1,24 @@
 ﻿using System.Text.Json;
 using AuthService.Services;
-using EmailService.ApplicationUser;
-using EmailService.Models;
-using EmailService.Models.AppSettings;
-using Microsoft.Extensions.Options;
+using AuthService.UserContext;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.FirebaseCloudMessaging.v1;
 using Google.Apis.FirebaseCloudMessaging.v1.Data;
 using Google.Apis.Services;
+using Microsoft.Extensions.Options;
+using NotificationService.Models;
+using NotificationService.Models.AppSettings;
 
-namespace EmailService.Services
+namespace NotificationService.Services
 {
     public class PushSenderService : IPushSenderService
     {
         private readonly IOptions<GoogleFirebaseConfig> _config;
-        private readonly IUserContext _userContext;
         private readonly IUserService _userService;
 
-        public PushSenderService(IOptions<GoogleFirebaseConfig> config, IUserContext userContext, IUserService userService)
+        public PushSenderService(IOptions<GoogleFirebaseConfig> config, IUserService userService)
         {
             _config = config;
-            _userContext = userContext;
             _userService = userService;
         }
 

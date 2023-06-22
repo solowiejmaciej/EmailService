@@ -1,4 +1,4 @@
-﻿namespace EmailService.Models.AppSettings
+﻿namespace NotificationService.Models.AppSettings
 {
     public class RedisConfig
     {

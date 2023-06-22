@@ -1,6 +1,4 @@
-﻿using EmailService.Entities;
-
-namespace EmailService.Models
+﻿namespace NotificationService.Models
 {
     public class EmailRequest
     {

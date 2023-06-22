@@ -1,9 +1,7 @@
 ﻿using AuthService.Models;
-using AutoMapper;
-using EmailService.Entities;
-using EmailService.Models;
+using NotificationService.Entities;
 
-namespace EmailService.Repositories
+namespace NotificationService.Repositories
 {
     public class PushRepository : IPushRepository
     {

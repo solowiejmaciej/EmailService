@@ -1,4 +1,4 @@
-﻿namespace EmailService.Entities
+﻿namespace NotificationService.Entities
 {
     public enum PushStatus
     {

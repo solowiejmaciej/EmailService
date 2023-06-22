@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace EmailService.Models.Validation
+namespace NotificationService.Models.Validation
 {
     public class EmailDtoValidation : AbstractValidator<EmailDto>
     {

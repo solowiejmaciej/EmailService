@@ -1,6 +1,6 @@
-﻿using EmailService.Entities;
+﻿using NotificationService.Entities;
 
-namespace EmailService.Models
+namespace NotificationService.Models
 {
     public class EmailDto
     {

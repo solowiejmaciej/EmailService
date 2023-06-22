@@ -1,4 +1,4 @@
-﻿namespace EmailService.Exceptions
+﻿namespace NotificationService.Exceptions
 {
     public class BadRequestException : Exception
     {

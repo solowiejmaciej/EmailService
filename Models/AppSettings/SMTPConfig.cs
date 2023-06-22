@@ -1,4 +1,4 @@
-﻿namespace EmailService
+﻿namespace NotificationService.Models.AppSettings
 {
     public class SMTPConfig
     {
