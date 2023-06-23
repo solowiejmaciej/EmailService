@@ -1,7 +1,7 @@
 
 # EmailService API
 
-Simple API that allowes users to send emails and manage them
+API that allowes users to send Notifications and manage them
 
 ## Features
 
