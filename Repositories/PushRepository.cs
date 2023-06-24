@@ -20,10 +20,34 @@ namespace NotificationService.Repositories
             await _dbContext.SaveChangesAsync();
             return push.Id;
         }
+
+        public PushNotification GetById(int id)
+        {
+            var pushById = _dbContext.PushNotifications.FirstOrDefault(p => p.Id == id);
+            return pushById;
+        }
+
+        public List<PushNotification> GetAll()
+        {
+            var pushAll = _dbContext.PushNotifications.ToList();
+            return pushAll;
+        }
+
+        public List<PushNotification> GetByUserId(string id)
+        {
+            var pushById = _dbContext.PushNotifications.Where(p => p.UserId == id).ToList();
+            return pushById;
+        }
     }
 
     public interface IPushRepository
     {
         Task<int> AddAsync(PushNotification push, UserDto userId);
+
+        PushNotification GetById(int id);
+
+        List<PushNotification> GetByUserId(string id);
+
+        List<PushNotification> GetAll();
     }
 }

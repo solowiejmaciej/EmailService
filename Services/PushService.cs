@@ -8,13 +8,11 @@ namespace NotificationService.Services
 {
     public interface IPushDataService
     {
-        List<PushNotificationDto> GetAllByCurrentUser();
+        List<PushNotificationDto> GetAll(string? userId);
 
         PushNotificationDto GetById(int id);
 
         Task<int> AddNewAsync(PushRequest dto, string userDto);
-
-        List<PushNotificationDto> GetAll();
     }
 
     public class PushService : IPushDataService
@@ -30,14 +28,26 @@ namespace NotificationService.Services
             _userService = userService;
         }
 
-        public List<PushNotificationDto> GetAllByCurrentUser()
+        public List<PushNotificationDto> GetAll(string? userId)
         {
-            throw new NotImplementedException();
+            if (userId is not null)
+            {
+                var userDto = _userService.GetById(userId);
+                var pushToUser = _pushRepository.GetByUserId(userDto.Id);
+                var pushToUserDtos = _mapper.Map<List<PushNotificationDto>>(pushToUser);
+                return pushToUserDtos;
+            }
+
+            var push = _pushRepository.GetAll();
+            var dtos = _mapper.Map<List<PushNotificationDto>>(push);
+            return dtos;
         }
 
         public PushNotificationDto GetById(int id)
         {
-            throw new NotImplementedException();
+            var push = _pushRepository.GetById(id);
+            var dto = _mapper.Map<PushNotificationDto>(push);
+            return dto;
         }
 
         public async Task<int> AddNewAsync(PushRequest request, string userId)
@@ -46,11 +56,6 @@ namespace NotificationService.Services
             var pushNotification = _mapper.Map<PushNotification>(request);
             await _pushRepository.AddAsync(pushNotification, userDto);
             return pushNotification.Id;
-        }
-
-        public List<PushNotificationDto> GetAll()
-        {
-            throw new NotImplementedException();
         }
     }
 }

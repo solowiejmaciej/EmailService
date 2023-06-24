@@ -9,15 +9,13 @@ namespace NotificationService.Services
 {
     public interface IEmailDataService
     {
-        List<EmailDto> GetAllByCurrentUser();
-
         EmailDto GetById(int id);
+
+        List<EmailDto> GetAllEmails();
 
         void SoftDelete(int id);
 
         Task<int> AddNewEmailToDbAsync(EmailRequest dto);
-
-        List<EmailDto> GetAllEmails();
     }
 
     public class EmailService : IEmailDataService
@@ -65,7 +63,7 @@ namespace NotificationService.Services
             return emailsDtos;
         }
 
-        public List<EmailDto> GetAllByCurrentUser()
+        private List<EmailDto> GetAllByCurrentUser()
         {
             var currentUser = _userContext.GetCurrentUser();
 
@@ -91,54 +89,26 @@ namespace NotificationService.Services
 
         public EmailDto GetById(int id)
         {
-            var currentUser = _userContext.GetCurrentUser();
+            var cacheData = _cache.GetData<EmailDto>(id.ToString());
 
-            //If user isn't admin, return only this user emails
-            if (currentUser.Role != "Admin")
-            {
-                var userCacheData = _cache.GetData<EmailDto>("user" + id);
-
-                if (userCacheData != null!)
-                {
-                    _logger.LogInformation("Data fetched from redis");
-                    return userCacheData;
-                }
-
-                var userEmails = _emailsRepository.GetAllEmailsByCurrentUser();
-                var userEmail = _emailsRepository.GetEmailById(userEmails, id);
-                if (userEmail == null)
-                {
-                    throw new NotFoundException($"Email with id {id} not found");
-                }
-
-                var userDto = _mapper.Map<EmailDto>(userEmail);
-
-                _cache.SetData("user" + id, userDto, _exipryTime);
-
-                return userDto;
-            }
-            //else return all emails
-
-            var adminCacheData = _cache.GetData<EmailDto>(id.ToString());
-
-            if (adminCacheData != null!)
+            if (cacheData != null!)
             {
                 _logger.LogInformation("Data fetched from redis");
-                return adminCacheData;
+                return cacheData;
             }
 
-            var adminEmails = _emailsRepository.GetAllEmails();
-            var adminEmail = _emailsRepository.GetEmailById(adminEmails, id);
-            if (adminEmail == null)
+            var emails = _emailsRepository.GetAllEmails();
+            var email = _emailsRepository.GetEmailById(emails, id);
+            if (email == null)
             {
                 throw new NotFoundException($"Email with id {id} not found");
             }
 
-            var adminDto = _mapper.Map<EmailDto>(adminEmail);
+            var dto = _mapper.Map<EmailDto>(email);
 
-            _cache.SetData(id.ToString(), adminDto, _exipryTime);
+            _cache.SetData(id.ToString(), dto, _exipryTime);
 
-            return adminDto;
+            return dto;
         }
 
         public void SoftDelete(int id)
