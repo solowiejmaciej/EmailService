@@ -23,5 +23,20 @@ namespace NotificationService.Controllers
             await _pushDataService.AddNewAsync(pushRequest, userId);
             return Ok(pushRequest);
         }
+
+        [HttpGet]
+        public IActionResult GetAll([FromQuery] string? userId)
+        {
+            var pushes = _pushDataService.GetAll(userId);
+            return Ok(pushes);
+        }
+
+        [Route("{id}")]
+        [HttpGet]
+        public IActionResult GetById([FromRoute] int id)
+        {
+            var pushes = _pushDataService.GetById(id);
+            return Ok(pushes);
+        }
     }
 }

@@ -21,9 +21,9 @@ namespace NotificationService.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Email>> GetAllByCurrentUser()
+        public ActionResult<List<Email>> GetAll()
         {
-            var allEmails = _emailDataService.GetAllByCurrentUser();
+            var allEmails = _emailDataService.GetAllEmails();
             return Ok(allEmails);
         }
 
@@ -46,14 +46,6 @@ namespace NotificationService.Controllers
         {
             _emailDataService.SoftDelete(id);
             return Ok();
-        }
-
-        [Authorize(Roles = "Admin")]
-        [HttpGet("All")]
-        public IActionResult GetAllEmails()
-        {
-            var emails = _emailDataService.GetAllEmails();
-            return Ok(emails);
         }
     }
 }
