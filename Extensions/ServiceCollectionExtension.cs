@@ -13,6 +13,7 @@ using NotificationService.Models.AppSettings;
 using NotificationService.Models.Validation;
 using NotificationService.Repositories;
 using NotificationService.Services;
+using NotificationService.Hangfire;
 
 namespace NotificationService.Extensions
 {
@@ -20,6 +21,7 @@ namespace NotificationService.Extensions
     {
         public static void AddEmailService(this IServiceCollection services)
         {
+            services.AddCustomHangfire();
             services.AddAuthService();
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
