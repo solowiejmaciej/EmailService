@@ -1,7 +1,10 @@
 ﻿using AuthService.Services;
 using AutoMapper;
 using NotificationService.Entities;
+using NotificationService.Hangfire.Manager;
 using NotificationService.Models;
+using NotificationService.Models.Dtos;
+using NotificationService.Models.Requests;
 using NotificationService.Repositories;
 
 namespace NotificationService.Services
@@ -20,12 +23,14 @@ namespace NotificationService.Services
         private readonly IPushRepository _pushRepository;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
+        private readonly INotificationJobManager _jobManager;
 
-        public PushService(IPushRepository dbContext, IMapper mapper, IUserService userService)
+        public PushService(IPushRepository dbContext, IMapper mapper, IUserService userService, INotificationJobManager jobManager)
         {
             _pushRepository = dbContext;
             _mapper = mapper;
             _userService = userService;
+            _jobManager = jobManager;
         }
 
         public List<PushNotificationDto> GetAll(string? userId)
@@ -55,6 +60,7 @@ namespace NotificationService.Services
             var userDto = _userService.GetById(userId);
             var pushNotification = _mapper.Map<PushNotification>(request);
             await _pushRepository.AddAsync(pushNotification, userDto);
+            _jobManager.EnqueuePushDeliveryDeliveryJob(pushNotification);
             return pushNotification.Id;
         }
     }

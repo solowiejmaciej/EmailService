@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NotificationService.Entities;
-using NotificationService.Models;
+using NotificationService.Models.Dtos;
+using NotificationService.Models.Requests;
 using NotificationService.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -21,14 +22,14 @@ namespace NotificationService.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Email>> GetAll()
+        public ActionResult<List<EmailDto>> GetAll()
         {
             var allEmails = _emailDataService.GetAllEmails();
             return Ok(allEmails);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Email> Get(int id)
+        public ActionResult<EmailDto> Get(int id)
         {
             return Ok(_emailDataService.GetById(id));
         }

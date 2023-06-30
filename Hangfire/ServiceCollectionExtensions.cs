@@ -3,6 +3,7 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using NotificationService.Hangfire.Manager;
 
 namespace NotificationService.Hangfire;
 
@@ -10,7 +11,6 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCustomHangfire(this IServiceCollection services)
     {
-
         var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .Build();
@@ -31,6 +31,9 @@ public static class ServiceCollectionExtensions
                 HangfireQueues.DEFAULT
             };
         });
+
+        services.AddScoped<INotificationJobManager, NotificationJobManager>();
+
         return services;
     }
 }

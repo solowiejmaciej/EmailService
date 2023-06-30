@@ -1,4 +1,4 @@
-﻿namespace NotificationService.Models
+﻿namespace NotificationService.Models.Requests
 {
     public class EmailRequest
     {

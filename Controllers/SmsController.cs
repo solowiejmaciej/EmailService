@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NotificationService.Models.Requests;
+using NotificationService.Services;
 
 namespace NotificationService.Controllers
 {
@@ -8,10 +10,18 @@ namespace NotificationService.Controllers
     [Route("api/[controller]")]
     public class SmsController : ControllerBase
     {
-        [HttpPost]
-        public async Task<IActionResult> Add()
+        private readonly ISmsService _smsService;
+
+        public SmsController(ISmsService smsService)
         {
-            throw new NotImplementedException();
+            _smsService = smsService;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Add([FromBody] SmsRequest request)
+        {
+            await _smsService.AddAsync(request);
+            return Ok(request);
         }
 
         [HttpGet]

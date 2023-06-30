@@ -38,9 +38,46 @@ namespace NotificationService.Repositories
             var pushById = _dbContext.PushNotifications.Where(p => p.UserId == id).ToList();
             return pushById;
         }
+
+        public void ChangePushStatus(int id, PushStatus status)
+        {
+            var push = _dbContext.PushNotifications.FirstOrDefault(e => e.Id == id);
+            if (push != null) push.Status = status;
+            Save();
+        }
+
+        public void Save()
+        {
+            _dbContext.SaveChanges();
+        }
+
+        public async Task SaveAsync()
+        {
+            await _dbContext.SaveChangesAsync();
+        }
+
+        private bool _disposed;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _dbContext.Dispose();
+                }
+            }
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 
-    public interface IPushRepository
+    public interface IPushRepository : IRepository
     {
         Task<int> AddAsync(PushNotification push, UserDto userId);
 
@@ -49,5 +86,7 @@ namespace NotificationService.Repositories
         List<PushNotification> GetByUserId(string id);
 
         List<PushNotification> GetAll();
+
+        void ChangePushStatus(int id, PushStatus status);
     }
 }

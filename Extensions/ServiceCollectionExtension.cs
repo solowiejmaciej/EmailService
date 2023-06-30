@@ -2,7 +2,6 @@
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using AuthService.UserContext;
 using NotificationService.Entities;
@@ -14,6 +13,9 @@ using NotificationService.Models.Validation;
 using NotificationService.Repositories;
 using NotificationService.Services;
 using NotificationService.Hangfire;
+using NotificationService.Health;
+using NotificationService.Models.Dtos;
+using NotificationService.Models.Requests;
 
 namespace NotificationService.Extensions
 {
@@ -29,8 +31,8 @@ namespace NotificationService.Extensions
 
             var redisOptions = configuration.GetSection("RedisSettings");
             var smtpConfig = configuration.GetSection(nameof(SMTPConfig));
-            var hangfireConfig = configuration.GetSection("HangfireSettings");
             var googleFirebaseSettings = configuration.GetSection("GoogleFirebase");
+            var smsSettings = configuration.GetSection("SmsSettings");
 
             // Add services to the container.
 
@@ -40,43 +42,50 @@ namespace NotificationService.Extensions
                 options.UseSqlServer(configuration.GetConnectionString("App"));
             });
 
+            //Cache
             services.AddScoped<ICacheService, CacheService>();
+
+            //Repos
             services.AddScoped<IEmailsRepository, EmailsRepository>();
             services.AddScoped<IPushRepository, PushRepository>();
+            services.AddScoped<ISmsRepository, SmsRepository>();
 
-            //Hangfire
-            services.AddHangfire(config => config
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage(configuration.GetConnectionString("Hangfire"))
-            );
             //Config
             services.Configure<SMTPConfig>(smtpConfig);
             services.Configure<RedisConfig>(redisOptions);
             services.Configure<GoogleFirebaseConfig>(googleFirebaseSettings);
+            services.Configure<SmsConfig>(smsSettings);
 
             //My services
-            services.AddScoped<IUserContext, UserContext>();
-            services.AddScoped<IEmailSenderService, EmailSenderService>();
-            services.AddScoped<IPushSenderService, PushSenderService>();
             services.AddScoped<IEmailDataService, EmailService>();
             services.AddScoped<IPushDataService, PushService>();
+            services.AddScoped<ISmsService, SmsService>();
 
             //Middleware
             services.AddScoped<ErrorHandlingMiddleware>();
 
-            //Helpers
+            //Validation
             services.AddFluentValidationAutoValidation();
-            services.AddScoped<IValidator<EmailDto>, EmailDtoValidation>();
-            services.AddHangfireServer();
+            services.AddScoped<IValidator<EmailRequest>, EmailRequestValidation>();
+            services.AddScoped<IValidator<SmsRequest>, SmsRequestValidation>();
+            services.AddScoped<IValidator<PushRequest>, PushRequestValidation>();
+
+            //Mapper
             services.AddScoped(provider => new MapperConfiguration(cfg =>
                 {
                     var scope = provider.CreateScope();
                     var userContext = scope.ServiceProvider.GetRequiredService<IUserContext>();
                     cfg.AddProfile(new EmailMappingProfile(userContext));
                     cfg.AddProfile(new PushMappingProfile(userContext));
+                    cfg.AddProfile(new SmsMappingProfile(userContext));
                 }).CreateMapper()
             );
+
+            //HealthChecks
+            services.AddHealthChecks()
+                .AddCheck<DatabaseHealthCheck>("mssqlDb")
+                .AddCheck<CacheDbHealthCheck>("cache")
+                .AddCheck<SmsPlanetApiHealthCheck>("smsPlanetApi");
         }
     }
 }

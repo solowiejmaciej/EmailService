@@ -1,10 +1,11 @@
 ﻿using FluentValidation;
+using NotificationService.Models.Requests;
 
 namespace NotificationService.Models.Validation
 {
-    public class EmailDtoValidation : AbstractValidator<EmailDto>
+    public class EmailRequestValidation : AbstractValidator<EmailRequest>
     {
-        public EmailDtoValidation()
+        public EmailRequestValidation()
         {
             RuleFor(e => e.Body)
                 .MinimumLength(8)
