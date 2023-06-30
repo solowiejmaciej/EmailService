@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NotificationService.Models;
+using NotificationService.Models.Requests;
 using NotificationService.Services;
 
 namespace NotificationService.Controllers

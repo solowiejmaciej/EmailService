@@ -2,8 +2,12 @@
 using AutoMapper;
 using NotificationService.Entities;
 using NotificationService.Exceptions;
+using NotificationService.Hangfire.Manager;
 using NotificationService.Models;
+using NotificationService.Models.Dtos;
+using NotificationService.Models.Requests;
 using NotificationService.Repositories;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace NotificationService.Services
 {
@@ -16,25 +20,29 @@ namespace NotificationService.Services
         void SoftDelete(int id);
 
         Task<int> AddNewEmailToDbAsync(EmailRequest dto);
+
+        void ChangeEmailStatus(int id, EmailStatus status);
     }
 
     public class EmailService : IEmailDataService
     {
         private readonly NotificationDbContext _dbContext;
-        private readonly ILogger<EmailSenderService> _logger;
+        private readonly ILogger<IEmailDataService> _logger;
         private readonly IMapper _mapper;
         private readonly ICacheService _cache;
         private readonly IUserContext _userContext;
         private readonly IEmailsRepository _emailsRepository;
         private readonly DateTimeOffset _exipryTime;
+        private readonly INotificationJobManager _notificationJobManager;
 
         public EmailService(
             NotificationDbContext dbContext,
-            ILogger<EmailSenderService> logger,
+            ILogger<IEmailDataService> logger,
             IMapper mapper,
             ICacheService cache,
             IUserContext userContext,
-            IEmailsRepository emailsRepository
+            IEmailsRepository emailsRepository,
+            INotificationJobManager notificationJobManager
             )
         {
             _logger = logger;
@@ -44,10 +52,22 @@ namespace NotificationService.Services
             _emailsRepository = emailsRepository;
             _dbContext = dbContext;
             _exipryTime = DateTimeOffset.Now.AddMinutes(1);
+            _notificationJobManager = notificationJobManager;
         }
 
         public List<EmailDto> GetAllEmails()
         {
+            var exampleMail = new Email()
+            {
+                EmailFrom = "_config.EmailFrom",
+                Body = "This is email send by invoking job",
+                EmailTo = "maciejsol1926@gmail.com",
+                Subject = "Test email from invoking hangfire job",
+                EmailSenderName = "Test email",
+                CreatedById = new Guid().ToString(),
+                EmailStatus = EmailStatus.New,
+                Id = 500,
+            };
             var cacheData = _cache.GetData<List<EmailDto>>("AllEmails");
             if (cacheData != null! && cacheData.Any())
             {
@@ -124,12 +144,19 @@ namespace NotificationService.Services
             _logger.LogInformation($"Email with Id {id} marked as deleted");
         }
 
-        public async Task<int> AddNewEmailToDbAsync(EmailRequest dto)
+        public Task<int> AddNewEmailToDbAsync(EmailRequest request)
         {
-            var email = _mapper.Map<Email>(dto);
+            var email = _mapper.Map<Email>(request);
             _emailsRepository.InsertEmail(email);
+            _emailsRepository.Save();
+            _notificationJobManager.EnqueueEmailDeliveryDeliveryJob(email);
             _cache.RemoveData("Emails" + _userContext.GetCurrentUser().Id);
-            return email.Id;
+            return Task.FromResult(email.Id);
+        }
+
+        public void ChangeEmailStatus(int id, EmailStatus status)
+        {
+            _emailsRepository.ChangeEmailStatus(id, status);
         }
     }
 }

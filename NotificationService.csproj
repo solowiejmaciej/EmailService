@@ -16,7 +16,12 @@
     <PackageReference Include="Hangfire.Dashboard.Basic.Authentication" Version="7.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.2" />
+    <PackageReference Include="RestSharp" Version="110.2.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.6.104" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.7.34" />
@@ -31,6 +36,10 @@
       <HintPath>..\AuthService\bin\Release\net7.0\AuthService.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Models\Dtos\" />
+	</ItemGroup>
 
 
 </Project>

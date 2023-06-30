@@ -2,6 +2,8 @@
 using AutoMapper;
 using NotificationService.Entities;
 using NotificationService.Models;
+using NotificationService.Models.Dtos;
+using NotificationService.Models.Requests;
 
 namespace NotificationService.MappingProfiles
 {
