@@ -3,7 +3,7 @@ using NotificationService.Entities;
 
 namespace NotificationService.Repositories
 {
-    public interface IEmailsRepository : IDisposable
+    public interface IEmailsRepository : IRepository
     {
         List<Email> GetAllEmailsByUser(string userId);
 
@@ -21,7 +21,7 @@ namespace NotificationService.Repositories
 
         void InsertEmail(Email email);
 
-        void Save();
+        void ChangeEmailStatus(int id, EmailStatus status);
     }
 
     public class EmailsRepository : IEmailsRepository
@@ -81,9 +81,21 @@ namespace NotificationService.Repositories
             _dbContext.Add(email);
         }
 
+        public void ChangeEmailStatus(int id, EmailStatus status)
+        {
+            var email = _dbContext.Emails.FirstOrDefault(e => e.Id == id);
+            if (email != null) email.EmailStatus = status;
+            Save();
+        }
+
         public void Save()
         {
             _dbContext.SaveChanges();
+        }
+
+        public async Task SaveAsync()
+        {
+            await _dbContext.SaveChangesAsync();
         }
 
         private bool _disposed;

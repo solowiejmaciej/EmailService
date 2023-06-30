@@ -27,13 +27,9 @@ builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddHealthChecks()
-    .AddCheck<DatabaseHealthCheck>("mssqldb")
-    .AddCheck<CacheDbHealthCheck>("cache");
-
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EmailService", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationService", Version = "v1" });
 
     // Konfiguracja autoryzacji JWT
     var securityScheme = new OpenApiSecurityScheme
@@ -83,8 +79,6 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions()
 });
 app.MapHangfireDashboard();
 
-RecurringJob.AddOrUpdate<IEmailSenderService>("Send background emails job", x => x.SendInBackground(), Cron.Never);
-RecurringJob.AddOrUpdate<IEmailSenderService>("Add Test email to DB", x => x.AddTestEmail(), Cron.Never);
 RecurringJob.AddOrUpdate<IEmailsRepository>("Delete emails", x => x.DeleteEmails(), Cron.Never);
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
