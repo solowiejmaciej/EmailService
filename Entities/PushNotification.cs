@@ -4,7 +4,8 @@
     {
         New,
         Send,
-        HasErrors
+        HasErrors,
+        ToBeDeleted
     }
 
     public class PushNotification

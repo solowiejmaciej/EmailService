@@ -5,5 +5,7 @@
         public void Save();
 
         Task SaveAsync();
+
+        void DeleteInBackground();
     }
 }

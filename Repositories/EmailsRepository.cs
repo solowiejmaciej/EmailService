@@ -15,9 +15,7 @@ namespace NotificationService.Repositories
 
         List<Email> GetEmailsByCreatorId(List<Email> emails, string creatorId);
 
-        void DeleteEmails();
-
-        void SoftDelete(List<Email> emails, int id);
+        void SoftDelete(Email email);
 
         void InsertEmail(Email email);
 
@@ -62,17 +60,16 @@ namespace NotificationService.Repositories
             return emails.Where(e => e.CreatedById == creatorId).ToList();
         }
 
-        public void DeleteEmails()
+        public void DeleteInBackground()
         {
             var emailsToDelete = _dbContext.Emails.Where(e => e.EmailStatus == EmailStatus.ToBeDeleted);
             _dbContext.Emails.RemoveRange(emailsToDelete);
             Save();
         }
 
-        public void SoftDelete(List<Email> emails, int id)
+        public void SoftDelete(Email email)
         {
-            var emailToDelete = emails.FirstOrDefault(e => e.Id == id);
-            emailToDelete.EmailStatus = EmailStatus.ToBeDeleted;
+            email.EmailStatus = EmailStatus.ToBeDeleted;
             Save();
         }
 

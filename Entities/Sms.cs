@@ -14,6 +14,7 @@
     {
         New,
         Send,
-        HasErrors
+        HasErrors,
+        ToBeDeleted
     }
 }

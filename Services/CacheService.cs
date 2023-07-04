@@ -26,7 +26,8 @@ namespace NotificationService.Services
                 EndPoints = { config.Value.Endpoints },
                 Password = config.Value.Password,
                 //Ssl = true,
-                AbortOnConnectFail = false
+                AbortOnConnectFail = false,
+                ConnectTimeout = 5000
             }
             );
             _cacheDb = redis.GetDatabase();
