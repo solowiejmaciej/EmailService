@@ -1,5 +1,5 @@
 
-# EmailService API
+# NotificationService API
 
 API that allowes users to send Notifications and manage them
 
@@ -10,6 +10,7 @@ API that allowes users to send Notifications and manage them
 - JWT Auth using AuthService
 - Email sending with SMTP
 - Push sending with Firebase
+- SMS sending with SMSPlanetAPI
 
 
 # Built With

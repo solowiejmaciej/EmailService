@@ -46,6 +46,13 @@ namespace NotificationService.Repositories
             Save();
         }
 
+        public void DeleteInBackground()
+        {
+            var pushesToDelete = _dbContext.PushNotifications.Where(e => e.Status == PushStatus.ToBeDeleted);
+            _dbContext.PushNotifications.RemoveRange(pushesToDelete);
+            Save();
+        }
+
         public void Save()
         {
             _dbContext.SaveChanges();

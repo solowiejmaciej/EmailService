@@ -3,9 +3,9 @@
     public enum EmailStatus
     {
         New,
-        EmailSended,
-        ToBeDeleted,
-        HasErrors
+        Send,
+        HasErrors,
+        ToBeDeleted
     }
 
     public class Email
