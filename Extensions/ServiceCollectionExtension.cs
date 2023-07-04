@@ -63,6 +63,7 @@ namespace NotificationService.Extensions
 
             //Middleware
             services.AddScoped<ErrorHandlingMiddleware>();
+            services.AddScoped<ApiKeyAuthMiddleware>();
 
             //Validation
             services.AddFluentValidationAutoValidation();

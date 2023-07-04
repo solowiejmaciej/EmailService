@@ -133,13 +133,13 @@ namespace NotificationService.Services
 
         public void SoftDelete(int id)
         {
-            var emailToDelete = GetAllByCurrentUser().FirstOrDefault(e => e.Id == id);
-            if (emailToDelete == null)
+            var emailToDeleteDtos = GetAllByCurrentUser().FirstOrDefault(e => e.Id == id);
+            if (emailToDeleteDtos == null)
             {
                 throw new NotFoundException($"Email with id {id} not found");
             }
-            emailToDelete.EmailStatus = EmailStatus.ToBeDeleted;
-            _emailsRepository.Save();
+            var emailToDelete = _mapper.Map<Email>(emailToDeleteDtos);
+            _emailsRepository.SoftDelete(emailToDelete);
             _cache.RemoveData("Emails");
             _logger.LogInformation($"Email with Id {id} marked as deleted");
         }

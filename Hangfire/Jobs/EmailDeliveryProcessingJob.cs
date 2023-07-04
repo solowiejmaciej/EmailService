@@ -70,7 +70,7 @@ public class EmailDeliveryProcessingJob
         try
         {
             await smtpClient.SendAsync(mailMessage, cancellationToken);
-            _emailService.ChangeEmailStatus(email.Id, EmailStatus.EmailSended);
+            _emailService.ChangeEmailStatus(email.Id, EmailStatus.Send);
             Console.WriteLine($"Email {email.Id} send successfully");
         }
         catch (Exception ex)

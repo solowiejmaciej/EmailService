@@ -1,23 +1,14 @@
-using Hangfire;
-using HangfireBasicAuthenticationFilter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using NotificationService.Extensions;
-using NotificationService.Health;
+using NotificationService.Hangfire;
 using NotificationService.Middleware;
-using NotificationService.Repositories;
-using NotificationService.Services;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEmailService();
-
-var notificationAppSettings = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
-    .Build();
-
-var hangfireConfig = notificationAppSettings.GetSection("HangfireSettings");
 
 builder.Services.AddLogging();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
@@ -44,7 +35,26 @@ builder.Services.AddSwaggerGen(c =>
         {
             Id = JwtBearerDefaults.AuthenticationScheme,
             Type = ReferenceType.SecurityScheme
-        }
+        },
+    };
+
+    c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    {
+        Description = "ApiKey must appear in header",
+        Type = SecuritySchemeType.ApiKey,
+        Name = "X-Api-Key",
+        In = ParameterLocation.Header,
+        Scheme = "ApiKeyScheme"
+    });
+
+    var apiKeySecurityScheme = new OpenApiSecurityScheme()
+    {
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "ApiKey"
+        },
+        In = ParameterLocation.Header
     };
     c.AddSecurityDefinition(securityScheme.Reference.Id, securityScheme);
 
@@ -52,11 +62,15 @@ builder.Services.AddSwaggerGen(c =>
     {
         { securityScheme, new string[] { } }
     });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { apiKeySecurityScheme, new string[] { } }
+    });
 });
 
 var app = builder.Build();
-app.UseCors();
 // Configure the HTTP request pipeline.
+app.UseCors();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -65,21 +79,9 @@ app.UseAuthentication();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-app.UseHangfireDashboard("/hangfire", new DashboardOptions()
-{
-    DashboardTitle = "EmailServiceHangfireDashboard",
-    Authorization = new[]
-    {
-        new HangfireCustomBasicAuthenticationFilter()
-        {
-            User = hangfireConfig["UserName"],
-            Pass = hangfireConfig["Password"]
-        }
-    }
-});
-app.MapHangfireDashboard();
+app.UseHangfire();
 
-RecurringJob.AddOrUpdate<IEmailsRepository>("Delete emails", x => x.DeleteEmails(), Cron.Never);
+app.MapHangfireDashboard();
 
 app.MapHealthChecks("/health", new HealthCheckOptions()
 {
@@ -87,5 +89,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions()
 });
 
 app.MapControllers();
+app.UseMiddleware<ApiKeyAuthMiddleware>();
 
 app.Run();

@@ -40,7 +40,8 @@ namespace NotificationService.Middleware
             {
                 _logger.LogError(e, e.Message);
                 context.Response.StatusCode = 500;
-                await context.Response.WriteAsync(e.Message);
+                //await context.Response.WriteAsync(e.Message);
+                await context.Response.WriteAsync("Unknown exception occured");
             }
         }
     }

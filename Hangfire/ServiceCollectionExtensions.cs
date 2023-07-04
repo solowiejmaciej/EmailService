@@ -1,9 +1,7 @@
-using System.Reflection;
 using Hangfire;
-using Hangfire.SqlServer;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using NotificationService.Hangfire.Manager;
+using NotificationService.Repositories;
+using HangfireBasicAuthenticationFilter;
 
 namespace NotificationService.Hangfire;
 
@@ -35,5 +33,47 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationJobManager, NotificationJobManager>();
 
         return services;
+    }
+
+    public static IApplicationBuilder UseHangfire(this IApplicationBuilder app)
+    {
+        var notificationAppSettings = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+        var hangfireConfig = notificationAppSettings.GetSection("HangfireSettings");
+
+        app.UseHangfireDashboard("/hangfire", new DashboardOptions()
+        {
+            DashboardTitle = "NotificationService",
+            Authorization = new[]
+            {
+                new HangfireCustomBasicAuthenticationFilter()
+                {
+                    User = hangfireConfig["UserName"],
+                    Pass = hangfireConfig["Password"]
+                }
+            }
+        });
+        RecurringJob.AddOrUpdate<IEmailsRepository>(
+            "DeleteAllEmails",
+            x => x.DeleteInBackground(),
+            Cron.Minutely,
+            queue: HangfireQueues.LOW_PRIORITY
+            );
+        RecurringJob.AddOrUpdate<ISmsRepository>(
+            "DeleteSMS",
+            x => x.DeleteInBackground(),
+            Cron.Minutely,
+            queue: HangfireQueues.LOW_PRIORITY
+        );
+        RecurringJob.AddOrUpdate<IPushRepository>(
+            "DeletePush",
+            x => x.DeleteInBackground(),
+            Cron.Minutely,
+            queue: HangfireQueues.LOW_PRIORITY
+        );
+
+        return app;
     }
 }

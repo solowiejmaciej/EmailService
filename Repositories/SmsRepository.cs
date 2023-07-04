@@ -41,6 +41,13 @@ namespace NotificationService.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public void DeleteInBackground()
+        {
+            var smsesToDelete = _dbContext.SmsNotifications.Where(e => e.Status == SmsStatus.ToBeDeleted);
+            _dbContext.SmsNotifications.RemoveRange(smsesToDelete);
+            Save();
+        }
+
         private bool _disposed;
 
         protected virtual void Dispose(bool disposing)
