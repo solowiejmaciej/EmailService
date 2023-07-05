@@ -25,16 +25,17 @@ API that allowes users to send Notifications and manage them
 * ![MicrosoftSQLServer](https://img.shields.io/badge/Microsoft%20SQL%20Sever-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white)
 * ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 
+# System Architecture
+
+![Screenshot](https://raw.githubusercontent.com/solowiejmaciej/NotificationService/master/ArchitectureDiagram.drawio.png)
+
 ## Hangfire
 
 | Job Name  | Cron     |
 | :-------- | :------- |
-| `Add Test email to DB` | `never` |
-| `Delete emails` | `never` |
-| `Send background emails` | `* * * * *` |
-
-
-![Screenshot](https://i.imgur.com/PcEkcQ5.png)
+| `Delete Sms` | `* * * * *` |
+| `Delete Emails` | `* * * * *` |
+| `Delete Pushes` | `* * * * *` |
 
 ## Requirements
 In order to use this API, you need to use JWT generated in [AuthService](https://github.com/solowiejmaciej/AuthService)
