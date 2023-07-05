@@ -25,6 +25,8 @@ API that allowes users to send Notifications and manage them
 * ![MicrosoftSQLServer](https://img.shields.io/badge/Microsoft%20SQL%20Sever-CC2927?style=for-the-badge&logo=microsoft%20sql%20server&logoColor=white)
 * ![Swagger](https://img.shields.io/badge/-Swagger-%23Clojure?style=for-the-badge&logo=swagger&logoColor=white)
 
+# System Architecture
+
 ![Screenshot](https://raw.githubusercontent.com/solowiejmaciej/NotificationService/master/ArchitectureDiagram.drawio.png)
 
 ## Hangfire
