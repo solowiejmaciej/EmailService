@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using NotificationService.Models.AppSettings;
 using StackExchange.Redis;
+using System.Text.Json;
 
 namespace NotificationService.Services
 {

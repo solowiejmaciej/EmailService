@@ -14,9 +14,14 @@
     <PackageReference Include="Google.Apis.Auth" Version="1.60.0" />
     <PackageReference Include="Google.Apis.FirebaseCloudMessaging.v1" Version="1.60.0.3063" />
     <PackageReference Include="Hangfire.Dashboard.Basic.Authentication" Version="7.0.1" />
+    <PackageReference Include="MediatR" Version="12.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -31,15 +36,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.4" />
   </ItemGroup>
 
-	<ItemGroup>
-    <Reference Include="AuthService">
-      <HintPath>..\AuthService\bin\Release\net7.0\AuthService.dll</HintPath>
-    </Reference>
+  <ItemGroup>
+    <Folder Include="MappingProfiles\User\" />
+    <Folder Include="MappingProfiles\Recipient\" />
   </ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Models\Dtos\" />
-	</ItemGroup>
 
 
 </Project>

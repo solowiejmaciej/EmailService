@@ -1,88 +1,82 @@
-﻿using AuthService.UserContext;
+﻿using Microsoft.EntityFrameworkCore;
 using NotificationService.Entities;
+using NotificationService.Entities.NotificationEntities;
+using NotificationService.Exceptions;
+using NotificationService.UserContext;
 
 namespace NotificationService.Repositories
 {
-    public interface IEmailsRepository : IRepository
+    public interface IEmailsRepository : INotificationRepository
     {
-        List<Email> GetAllEmailsByUser(string userId);
+        Task<int> AddAsync(EmailNotification email);
 
-        List<Email> GetAllEmails();
+        Task<List<EmailNotification>> GetAllEmailsToUserIdAsync(string userId);
 
-        List<Email> GetAllEmailsByCurrentUser();
+        Task<EmailNotification?> GetEmailByIdAndUserIdAsync(int id, string userId);
 
-        Email? GetEmailById(List<Email> emails, int id);
-
-        List<Email> GetEmailsByCreatorId(List<Email> emails, string creatorId);
-
-        void SoftDelete(Email email);
-
-        void InsertEmail(Email email);
-
-        void ChangeEmailStatus(int id, EmailStatus status);
+        void ChangeEmailStatus(int id, EStatus status);
     }
 
     public class EmailsRepository : IEmailsRepository
     {
         private readonly NotificationDbContext _dbContext;
-        private readonly IUserContext _userContext;
 
-        public EmailsRepository(NotificationDbContext dbContext, IUserContext userContext)
+        public EmailsRepository(NotificationDbContext dbContext)
         {
             _dbContext = dbContext;
-            _userContext = userContext;
         }
 
-        public List<Email> GetAllEmailsByUser(string userId)
+        public async Task<int> AddAsync(EmailNotification email)
         {
-            return _dbContext.Emails.Where(e => e.CreatedById == userId && e.EmailStatus != EmailStatus.ToBeDeleted).ToList();
+            var newEmail = await _dbContext.AddAsync(email);
+            await _dbContext.SaveChangesAsync();
+            return newEmail.Entity.Id;
         }
 
-        public List<Email> GetAllEmails()
+        public async Task<List<EmailNotification>> GetAllEmailsToUserIdAsync(string userId)
         {
-            return _dbContext.Emails.Where(e => e.EmailStatus != EmailStatus.ToBeDeleted).ToList();
+            return await _dbContext.EmailsNotifications.Where(e => e.RecipientId == userId && e.Status != EStatus.ToBeDeleted).ToListAsync();
         }
 
-        public List<Email> GetAllEmailsByCurrentUser()
+        public async Task<EmailNotification?> GetEmailByIdAndUserIdAsync(int id, string userId)
         {
-            var currentUserId = _userContext.GetCurrentUser().Id;
-            var emails = GetAllEmailsByUser(currentUserId);
-            return emails;
+            return await _dbContext.EmailsNotifications.FirstOrDefaultAsync(
+                e =>
+                    e.RecipientId == userId &&
+                    e.Status != EStatus.ToBeDeleted &&
+                    e.Id == id
+            );
         }
 
-        public Email? GetEmailById(List<Email> emails, int id)
+        public void ChangeEmailStatus(int id, EStatus status)
         {
-            return emails.FirstOrDefault(e => e.Id == id);
-        }
-
-        public List<Email> GetEmailsByCreatorId(List<Email> emails, string creatorId)
-        {
-            return emails.Where(e => e.CreatedById == creatorId).ToList();
+            var email = _dbContext.EmailsNotifications.FirstOrDefault(e => e.Id == id);
+            if (email != null) email.Status = status;
+            Save();
         }
 
         public void DeleteInBackground()
         {
-            var emailsToDelete = _dbContext.Emails.Where(e => e.EmailStatus == EmailStatus.ToBeDeleted);
-            _dbContext.Emails.RemoveRange(emailsToDelete);
+            var emailsToDelete = _dbContext.EmailsNotifications.Where(e => e.Status == EStatus.ToBeDeleted);
+            _dbContext.EmailsNotifications.RemoveRange(emailsToDelete);
             Save();
         }
 
-        public void SoftDelete(Email email)
+        public async Task<int> SoftDeleteAsync(int id, string userId)
         {
-            email.EmailStatus = EmailStatus.ToBeDeleted;
-            Save();
+            var emailToDeleted = await _dbContext.EmailsNotifications.FirstOrDefaultAsync(e =>
+                e.Id == id &&
+                e.RecipientId == userId
+            );
+            if (emailToDeleted is null) return 0;
+            emailToDeleted.Status = EStatus.ToBeDeleted;
+            await SaveAsync();
+            return emailToDeleted.Id;
         }
 
-        public void InsertEmail(Email email)
+        public void SoftDelete(int id)
         {
-            _dbContext.Add(email);
-        }
-
-        public void ChangeEmailStatus(int id, EmailStatus status)
-        {
-            var email = _dbContext.Emails.FirstOrDefault(e => e.Id == id);
-            if (email != null) email.EmailStatus = status;
-            Save();
+            throw new NotImplementedException();
         }
 
         public void Save()

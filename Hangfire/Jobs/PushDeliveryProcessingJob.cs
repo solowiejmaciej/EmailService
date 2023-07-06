@@ -1,14 +1,16 @@
-﻿using Hangfire.Server;
-using Hangfire;
-using Microsoft.Extensions.Options;
-using NotificationService.Entities;
-using NotificationService.Models.AppSettings;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.FirebaseCloudMessaging.v1.Data;
+﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.FirebaseCloudMessaging.v1;
+using Google.Apis.FirebaseCloudMessaging.v1.Data;
 using Google.Apis.Services;
-using System.Text.Json;
+using Hangfire;
+using Hangfire.Server;
+using Microsoft.Extensions.Options;
+using NotificationService.Entities.NotificationEntities;
+using NotificationService.Models.AppSettings;
 using NotificationService.Repositories;
+using System.Text.Json;
+using NotificationService.Models;
+using Notification = Google.Apis.FirebaseCloudMessaging.v1.Data.Notification;
 
 namespace NotificationService.Hangfire.Jobs
 {
@@ -34,6 +36,7 @@ namespace NotificationService.Hangfire.Jobs
         [Queue(HangfireQueues.DEFAULT)]
         public async Task Send(
             PushNotification push,
+            Recipient recipient,
             PerformContext context,
             CancellationToken cancellationToken)
         {
@@ -47,7 +50,7 @@ namespace NotificationService.Hangfire.Jobs
             {
                 Message = new Message()
                 {
-                    Token = push.DeviceId,
+                    Token = recipient.DeviceId,
                     Notification = new Notification()
                     {
                         Title = push.Title,
@@ -58,14 +61,12 @@ namespace NotificationService.Hangfire.Jobs
             try
             {
                 await firebaseCloudMessagingService.Projects.Messages.Send(pushNotification, $"projects/{_config.Value.project_id}").ExecuteAsync(cancellationToken);
-                _repository.ChangePushStatus(push.Id, PushStatus.Send);
-                await _repository.SaveAsync();
+                _repository.ChangePushStatus(push.Id, EStatus.Send);
                 _logger.LogInformation($"Push {push.Id} send successfully");
             }
             catch (Exception ex)
             {
-                _repository.ChangePushStatus(push.Id, PushStatus.HasErrors);
-                await _repository.SaveAsync();
+                _repository.ChangePushStatus(push.Id, EStatus.HasErrors);
                 _logger.LogError("Error occurred while trying to send a push" + ex.Message);
             }
         }

@@ -1,6 +1,8 @@
 ﻿using Hangfire;
-using NotificationService.Entities;
+using NotificationService.Entities.NotificationEntities;
 using NotificationService.Hangfire.Jobs;
+using NotificationService.Models;
+using NotificationService.Services;
 
 namespace NotificationService.Hangfire.Manager;
 
@@ -13,29 +15,32 @@ public class NotificationJobManager : INotificationJobManager
         _backgroundJobClient = backgroundJobClient;
     }
 
-    public void EnqueueEmailDeliveryDeliveryJob(Email email)
+    public void EnqueueEmailDeliveryDeliveryJob(EmailNotification email, Recipient recipient)
     {
         _backgroundJobClient.Enqueue<EmailDeliveryProcessingJob>(x =>
              x.Send(
                 email,
+                recipient,
                 default!,
                 CancellationToken.None));
     }
 
-    public void EnqueuePushDeliveryDeliveryJob(PushNotification push)
+    public void EnqueuePushDeliveryDeliveryJob(PushNotification push, Recipient recipient)
     {
         _backgroundJobClient.Enqueue<PushDeliveryProcessingJob>(x =>
             x.Send(
                 push,
+                recipient,
                 default!,
                 CancellationToken.None));
     }
 
-    public void EnqueueSmsDeliveryDeliveryJob(Sms sms)
+    public void EnqueueSmsDeliveryDeliveryJob(SmsNotification sms, Recipient recipient)
     {
         _backgroundJobClient.Enqueue<SmsDeliveryProcessingJob>(x =>
             x.Send(
                 sms,
+                recipient,
                 default!,
                 CancellationToken.None));
     }
@@ -43,9 +48,9 @@ public class NotificationJobManager : INotificationJobManager
 
 public interface INotificationJobManager
 {
-    void EnqueueEmailDeliveryDeliveryJob(Email email);
+    void EnqueueEmailDeliveryDeliveryJob(EmailNotification email, Recipient recipient);
 
-    void EnqueueSmsDeliveryDeliveryJob(Sms sms);
+    void EnqueueSmsDeliveryDeliveryJob(SmsNotification sms, Recipient recipient);
 
-    void EnqueuePushDeliveryDeliveryJob(PushNotification push);
+    void EnqueuePushDeliveryDeliveryJob(PushNotification push, Recipient recipient);
 }
