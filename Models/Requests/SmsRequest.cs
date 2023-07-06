@@ -2,7 +2,6 @@
 {
     public class SmsRequest
     {
-        public string Body { get; set; }
-        public string To { get; set; }
+        public string Content { get; set; }
     }
 }

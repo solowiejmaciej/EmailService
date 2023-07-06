@@ -2,7 +2,7 @@
 {
     public class PushRequest
     {
-        public string PushTitle { get; set; }
-        public string PushContent { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
     }
 }

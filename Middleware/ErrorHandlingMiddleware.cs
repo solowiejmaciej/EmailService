@@ -30,11 +30,17 @@ namespace NotificationService.Middleware
                 context.Response.StatusCode = 404;
                 await context.Response.WriteAsync(notFoundException.Message);
             }
-            catch (AuthService.Exceptions.NotFoundException notFoundException)
+            catch (UnprocessableContentException unprocessableContent)
             {
-                _logger.LogError(notFoundException, notFoundException.Message);
-                context.Response.StatusCode = 404;
-                await context.Response.WriteAsync(notFoundException.Message);
+                _logger.LogError(unprocessableContent, unprocessableContent.Message);
+                context.Response.StatusCode = 422;
+                await context.Response.WriteAsync(unprocessableContent.Message);
+            }
+            catch (UnauthorizedAccessException unauthorizedAcces)
+            {
+                _logger.LogError(unauthorizedAcces, unauthorizedAcces.Message);
+                context.Response.StatusCode = 401;
+                await context.Response.WriteAsync(unauthorizedAcces.Message);
             }
             catch (Exception e)
             {

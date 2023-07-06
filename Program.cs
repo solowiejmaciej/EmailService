@@ -1,14 +1,18 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.OpenApi.Models;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using NotificationService.Extensions;
-using NotificationService.Hangfire;
-using NotificationService.Middleware;
 using Hangfire;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.OpenApi.Models;
+using NotificationService.Extensions;
+using NotificationService.Extensions.Auth;
+using NotificationService.Extensions.Hangfire;
+using NotificationService.Extensions.Notifications;
+using NotificationService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddEmailService();
+builder.Services.AddAuthServiceCollection();
+builder.Services.AddNotificationsServiceCollection();
+builder.Services.AddHangfireServiceCollection();
 
 builder.Services.AddLogging();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
@@ -68,6 +72,20 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "apiCorsPolicy",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                //                .AllowCredentials()
+                .SetIsOriginAllowed(options => true);
+            //.WithMethods("OPTIONS", "GET");
+        });
+});
+
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseCors();
@@ -89,6 +107,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions()
 });
 
 app.MapControllers();
-app.UseMiddleware<ApiKeyAuthMiddleware>();
+//app.UseMiddleware<ApiKeyAuthMiddleware>();
 
 app.Run();

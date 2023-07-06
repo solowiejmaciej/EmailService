@@ -1,8 +1,20 @@
-﻿using AuthService.Models;
+﻿using Microsoft.EntityFrameworkCore;
 using NotificationService.Entities;
+using NotificationService.Entities.NotificationEntities;
 
 namespace NotificationService.Repositories
 {
+    public interface IPushRepository : INotificationRepository
+    {
+        Task<int> AddAsync(PushNotification push);
+
+        Task<List<PushNotification>> GetAllPushesToUserIdAsync(string userId);
+
+        Task<PushNotification?> GetPushByIdAndUserIdAsync(int id, string userId);
+
+        void ChangePushStatus(int id, EStatus status);
+    }
+
     public class PushRepository : IPushRepository
     {
         private readonly NotificationDbContext _dbContext;
@@ -12,34 +24,29 @@ namespace NotificationService.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<int> AddAsync(PushNotification push, UserDto userDto)
+        public async Task<int> AddAsync(PushNotification push)
         {
-            var pushFromDb = await _dbContext.PushNotifications.AddAsync(push);
-            pushFromDb.Entity.UserId = userDto.Id;
-            pushFromDb.Entity.DeviceId = userDto.DeviceId;
+            await _dbContext.PushNotifications.AddAsync(push);
             await _dbContext.SaveChangesAsync();
             return push.Id;
         }
 
-        public PushNotification GetById(int id)
+        public async Task<List<PushNotification>> GetAllPushesToUserIdAsync(string userId)
         {
-            var pushById = _dbContext.PushNotifications.FirstOrDefault(p => p.Id == id);
-            return pushById;
+            return await _dbContext.PushNotifications.Where(e => e.RecipientId == userId && e.Status != EStatus.ToBeDeleted).ToListAsync();
         }
 
-        public List<PushNotification> GetAll()
+        public async Task<PushNotification?> GetPushByIdAndUserIdAsync(int id, string userId)
         {
-            var pushAll = _dbContext.PushNotifications.ToList();
-            return pushAll;
+            return await _dbContext.PushNotifications.FirstOrDefaultAsync(
+                e =>
+                    e.RecipientId == userId &&
+                    e.Status != EStatus.ToBeDeleted &&
+                    e.Id == id
+            );
         }
 
-        public List<PushNotification> GetByUserId(string id)
-        {
-            var pushById = _dbContext.PushNotifications.Where(p => p.UserId == id).ToList();
-            return pushById;
-        }
-
-        public void ChangePushStatus(int id, PushStatus status)
+        public void ChangePushStatus(int id, EStatus status)
         {
             var push = _dbContext.PushNotifications.FirstOrDefault(e => e.Id == id);
             if (push != null) push.Status = status;
@@ -48,9 +55,26 @@ namespace NotificationService.Repositories
 
         public void DeleteInBackground()
         {
-            var pushesToDelete = _dbContext.PushNotifications.Where(e => e.Status == PushStatus.ToBeDeleted);
+            var pushesToDelete = _dbContext.PushNotifications.Where(e => e.Status == EStatus.ToBeDeleted);
             _dbContext.PushNotifications.RemoveRange(pushesToDelete);
             Save();
+        }
+
+        public async Task<int> SoftDeleteAsync(int id, string userId)
+        {
+            var pushToBeDeleted = await _dbContext.PushNotifications.FirstOrDefaultAsync(e =>
+                e.Id == id &&
+                e.RecipientId == userId
+            );
+            if (pushToBeDeleted is null) return 0;
+            pushToBeDeleted.Status = EStatus.ToBeDeleted;
+            await SaveAsync();
+            return pushToBeDeleted.Id;
+        }
+
+        public void SoftDelete(int id)
+        {
+            throw new NotImplementedException();
         }
 
         public void Save()
@@ -82,18 +106,5 @@ namespace NotificationService.Repositories
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-    }
-
-    public interface IPushRepository : IRepository
-    {
-        Task<int> AddAsync(PushNotification push, UserDto userId);
-
-        PushNotification GetById(int id);
-
-        List<PushNotification> GetByUserId(string id);
-
-        List<PushNotification> GetAll();
-
-        void ChangePushStatus(int id, PushStatus status);
     }
 }

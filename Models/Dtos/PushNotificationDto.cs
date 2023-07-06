@@ -1,13 +1,7 @@
-﻿using NotificationService.Entities;
-
-namespace NotificationService.Models.Dtos
+﻿namespace NotificationService.Models.Dtos
 {
-    public class PushNotificationDto
+    public class PushNotificationDto : NotificationDto
     {
-        public int Id { get; set; }
         public string Title { get; set; }
-        public string Content { get; set; }
-        public PushStatus Status { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

@@ -3,8 +3,11 @@ using Hangfire.Server;
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using NotificationService.Entities;
+using NotificationService.Entities.NotificationEntities;
+using NotificationService.Exceptions;
+using NotificationService.Models;
 using NotificationService.Models.AppSettings;
+using NotificationService.Repositories;
 using NotificationService.Services;
 
 namespace NotificationService.Hangfire.Jobs;
@@ -12,13 +15,21 @@ namespace NotificationService.Hangfire.Jobs;
 public class EmailDeliveryProcessingJob
 {
     private readonly ILogger<EmailDeliveryProcessingJob> _logger;
-    private readonly IEmailDataService _emailService;
+    private readonly IEmailsRepository _repo;
+    private readonly IRecipientService _recipientService;
     private readonly SMTPConfig _config;
 
-    public EmailDeliveryProcessingJob(ILogger<EmailDeliveryProcessingJob> logger, IOptions<SMTPConfig> config, IEmailDataService emailService)
+    public EmailDeliveryProcessingJob(
+        ILogger<EmailDeliveryProcessingJob> logger,
+        IOptions<SMTPConfig> config,
+        IEmailsRepository repository,
+        IRecipientService recipientService
+
+        )
     {
         _logger = logger;
-        _emailService = emailService;
+        _repo = repository;
+        _recipientService = recipientService;
         _config = config.Value;
     }
 
@@ -26,7 +37,8 @@ public class EmailDeliveryProcessingJob
     [JobDisplayName("EmailDeliveryProcessingJob")]
     [Queue(HangfireQueues.DEFAULT)]
     public async Task Send(
-        Email email,
+        EmailNotification email,
+        Recipient recipient,
         PerformContext context,
         CancellationToken cancellationToken)
     {
@@ -35,13 +47,20 @@ public class EmailDeliveryProcessingJob
         {
             throw new NullReferenceException("Email can't be null");
         }
+
+        if (recipient == null)
+        {
+            _repo.ChangeEmailStatus(email.Id, EStatus.HasErrors);
+            throw new NotFoundException("user not found");
+        }
+
         var mailMessage = new MimeMessage();
-        mailMessage.From.Add(new MailboxAddress(email.EmailSenderName, email.EmailFrom));
-        mailMessage.To.Add(new MailboxAddress("Client", email.EmailTo));
+        mailMessage.From.Add(new MailboxAddress("senderNameTBD", "solowiejmaciej@gmail.com"));
+        mailMessage.To.Add(new MailboxAddress("Client", recipient.Email));
         mailMessage.Subject = email.Subject;
         mailMessage.Body = new TextPart("plain")
         {
-            Text = email.Body
+            Text = email.Content
         };
 
         var smtpClient = new SmtpClient();
@@ -51,7 +70,7 @@ public class EmailDeliveryProcessingJob
         }
         catch (Exception ex)
         {
-            _emailService.ChangeEmailStatus(email.Id, EmailStatus.HasErrors);
+            _repo.ChangeEmailStatus(email.Id, EStatus.HasErrors);
             _logger.LogError(ex.Message);
             return;
         }
@@ -62,7 +81,7 @@ public class EmailDeliveryProcessingJob
         }
         catch (Exception ex)
         {
-            _emailService.ChangeEmailStatus(email.Id, EmailStatus.HasErrors);
+            _repo.ChangeEmailStatus(email.Id, EStatus.HasErrors);
             _logger.LogError(ex.Message);
             return;
         }
@@ -70,12 +89,12 @@ public class EmailDeliveryProcessingJob
         try
         {
             await smtpClient.SendAsync(mailMessage, cancellationToken);
-            _emailService.ChangeEmailStatus(email.Id, EmailStatus.Send);
+            _repo.ChangeEmailStatus(email.Id, EStatus.Send);
             Console.WriteLine($"Email {email.Id} send successfully");
         }
         catch (Exception ex)
         {
-            _emailService.ChangeEmailStatus(email.Id, EmailStatus.HasErrors);
+            _repo.ChangeEmailStatus(email.Id, EStatus.HasErrors);
             _logger.LogError(ex.Message);
             return;
         }
