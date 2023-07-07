@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
+using NotificationService.Entities;
 using NotificationService.Models.Dtos;
 
 namespace NotificationService.MappingProfiles.User
@@ -8,8 +8,8 @@ namespace NotificationService.MappingProfiles.User
     {
         public UserMappingProfile()
         {
-            CreateMap<UserDto, IdentityUser>();
-            CreateMap<IdentityUser, UserDto>();
+            CreateMap<UserDto, ApplicationUser>();
+            CreateMap<ApplicationUser, UserDto>();
         }
     }
 }

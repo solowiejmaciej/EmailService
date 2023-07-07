@@ -1,6 +1,6 @@
 ﻿namespace NotificationService.Models.Requests
 {
-    public class SmsRequest
+    public class AddSmsRequest
     {
         public string Content { get; set; }
     }

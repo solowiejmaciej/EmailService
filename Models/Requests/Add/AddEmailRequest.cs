@@ -1,8 +1,8 @@
 ﻿namespace NotificationService.Models.Requests
 {
-    public class PushRequest
+    public class AddEmailRequest
     {
-        public string Title { get; set; }
         public string Content { get; set; }
+        public string Subject { get; set; }
     }
 }

@@ -1,11 +1,5 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using NotificationService.Entities;
-using NotificationService.Entities.NotificationEntities;
-using NotificationService.Exceptions;
 using NotificationService.Hangfire.Manager;
-using NotificationService.Models.Dtos;
-using NotificationService.Models.Requests;
 using NotificationService.Repositories;
 using NotificationService.UserContext;
 

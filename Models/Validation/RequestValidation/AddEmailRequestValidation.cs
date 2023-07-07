@@ -3,9 +3,9 @@ using NotificationService.Models.Requests;
 
 namespace NotificationService.Models.Validation.RequestValidation
 {
-    public class EmailRequestValidation : AbstractValidator<EmailRequest>
+    public class AddEmailRequestValidation : AbstractValidator<AddEmailRequest>
     {
-        public EmailRequestValidation()
+        public AddEmailRequestValidation()
         {
             RuleFor(e => e.Content)
                 .MinimumLength(8)

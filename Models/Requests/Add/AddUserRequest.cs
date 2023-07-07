@@ -1,10 +1,9 @@
-﻿using FluentValidation;
-using NotificationService.Models.Validation;
-
-namespace NotificationService.Models.Requests
+﻿namespace NotificationService.Models.Requests
 {
-    public class UserRegisterRequest
+    public class AddUserRequest
     {
+        public string Firstname { get; set; }
+        public string Surname { get; set; }
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
         public string Email { get; set; }

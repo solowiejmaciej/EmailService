@@ -1,14 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices.ComTypes;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NotificationService.MediatR.Commands;
 using NotificationService.MediatR.Commands.CreateNew;
 using NotificationService.MediatR.Commands.Delete;
-using NotificationService.MediatR.Queries;
 using NotificationService.MediatR.Queries.GetAll;
 using NotificationService.MediatR.Queries.GetById;
+using NotificationService.Models.QueryParameters;
 using NotificationService.Models.Requests;
 
 namespace NotificationService.Controllers.Notifications
@@ -29,20 +26,21 @@ namespace NotificationService.Controllers.Notifications
 
         [HttpPost]
         public async Task<ActionResult> Add(
-            [FromBody] PushRequest request,
-            [FromQuery][Required] string userId
+            [FromBody] AddPushRequest request,
+            [FromQuery] PushRequestQuerryParameters parameters
             )
         {
             var command = new CreateNewPushCommand()
             {
                 Content = request.Content,
                 Title = request.Title,
-                RecipiantId = userId
+                RecipiantId = parameters.UserId
             };
             var createdPushId = await _mediator.Send(command);
             return Created($"/api/Push/{createdPushId}", command);
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
@@ -53,6 +51,7 @@ namespace NotificationService.Controllers.Notifications
             return Ok(allPushesDtoByCurrentUser);
         }
 
+        [Authorize]
         [Route("{id}")]
         [HttpGet]
         public async Task<ActionResult> GetById([FromRoute] int id)
@@ -66,6 +65,7 @@ namespace NotificationService.Controllers.Notifications
             return Ok(pushCreatedByCurrentUserWithSearchId);
         }
 
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {

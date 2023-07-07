@@ -9,10 +9,8 @@ namespace NotificationService.MappingProfiles.Notifications;
 
 public class SmsMappingProfile : Profile
 {
-    public SmsMappingProfile(IUserContext userContext)
+    public SmsMappingProfile()
     {
-        var user = userContext.GetCurrentUser();
-
         CreateMap<SmsNotificationDto, SmsNotification>();
         CreateMap<SmsNotification, SmsNotificationDto>();
 

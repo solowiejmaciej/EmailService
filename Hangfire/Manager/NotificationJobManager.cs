@@ -2,7 +2,6 @@
 using NotificationService.Entities.NotificationEntities;
 using NotificationService.Hangfire.Jobs;
 using NotificationService.Models;
-using NotificationService.Services;
 
 namespace NotificationService.Hangfire.Manager;
 

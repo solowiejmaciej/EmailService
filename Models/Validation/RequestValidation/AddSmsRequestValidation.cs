@@ -3,9 +3,9 @@ using NotificationService.Models.Requests;
 
 namespace NotificationService.Models.Validation.RequestValidation
 {
-    public class SmsRequestValidation : AbstractValidator<SmsRequest>
+    public class AddSmsRequestValidation : AbstractValidator<AddSmsRequest>
     {
-        public SmsRequestValidation()
+        public AddSmsRequestValidation()
         {
             RuleFor(e => e.Content)
                 .NotEmpty();

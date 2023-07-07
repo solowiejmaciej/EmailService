@@ -1,21 +1,23 @@
-﻿using System.Reflection;
-using AutoMapper;
+﻿using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Entities;
 using NotificationService.Health;
-using NotificationService.MappingProfiles;
 using NotificationService.MappingProfiles.Notifications;
-using NotificationService.MappingProfiles.Recipient;
+using NotificationService.MappingProfiles.Recipients;
 using NotificationService.Middleware;
 using NotificationService.Models.AppSettings;
+using NotificationService.Models.QueryParameters;
 using NotificationService.Models.Requests;
+using NotificationService.Models.Validation.QueryParametersValidation;
 using NotificationService.Models.Validation.RequestValidation;
 using NotificationService.Repositories;
 using NotificationService.Services;
 using NotificationService.Services.Notifications;
-using NotificationService.UserContext;
+using System.Reflection;
+using NotificationService.MappingProfiles.User;
+using NotificationService.Models.Requests.Update;
 
 namespace NotificationService.Extensions.Notifications
 {
@@ -58,28 +60,32 @@ namespace NotificationService.Extensions.Notifications
             services.Configure<GoogleFirebaseConfig>(googleFirebaseSettings);
             services.Configure<SmsConfig>(smsSettings);
 
-            //My services
-            services.AddScoped<IEmailDataService, EmailService>();
-
             //Middleware
             services.AddScoped<ErrorHandlingMiddleware>();
             services.AddScoped<ApiKeyAuthMiddleware>();
 
             //Validation
             services.AddFluentValidationAutoValidation();
-            services.AddScoped<IValidator<EmailRequest>, EmailRequestValidation>();
-            services.AddScoped<IValidator<SmsRequest>, SmsRequestValidation>();
-            services.AddScoped<IValidator<PushRequest>, PushRequestValidation>();
+            services.AddScoped<IValidator<AddEmailRequest>, AddEmailRequestValidation>();
+            services.AddScoped<IValidator<AddSmsRequest>, AddSmsRequestValidation>();
+            services.AddScoped<IValidator<AddPushRequest>, AddPushRequestValidation>();
+
+            services.AddScoped<IValidator<EmailRequestQuerryParameters>, EmailRequestQuerryParametersValidation>();
+            services.AddScoped<IValidator<SmsRequestQuerryParameters>, SmsRequestQuerryParametersValidation>();
+            services.AddScoped<IValidator<PushRequestQuerryParameters>, PushRequestQuerryParametersValidation>();
+
+            services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserRequestValidation>();
 
             //Mapper
             services.AddScoped(provider => new MapperConfiguration(cfg =>
                 {
-                    var scope = provider.CreateScope();
-                    var userContext = scope.ServiceProvider.GetRequiredService<IUserContext>();
-                    cfg.AddProfile(new EmailMappingProfile(userContext));
-                    cfg.AddProfile(new PushMappingProfile(userContext));
-                    cfg.AddProfile(new SmsMappingProfile(userContext));
+                    //var scope = provider.CreateScope();
+                    //var userContext = scope.ServiceProvider.GetRequiredService<IUserContext>();
+                    cfg.AddProfile(new EmailMappingProfile());
+                    cfg.AddProfile(new PushMappingProfile());
+                    cfg.AddProfile(new SmsMappingProfile());
                     cfg.AddProfile(new RecipientMappingProfile());
+                    cfg.AddProfile(new UserMappingProfile());
                 }).CreateMapper()
             );
 

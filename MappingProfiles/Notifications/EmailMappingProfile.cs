@@ -9,10 +9,8 @@ namespace NotificationService.MappingProfiles.Notifications;
 
 public class EmailMappingProfile : Profile
 {
-    public EmailMappingProfile(IUserContext userContext)
+    public EmailMappingProfile()
     {
-        var user = userContext.GetCurrentUser();
-
         CreateMap<EmailNotificationDto, EmailNotification>();
         CreateMap<EmailNotification, EmailNotificationDto>();
 

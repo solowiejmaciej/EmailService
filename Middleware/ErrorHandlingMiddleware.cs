@@ -42,6 +42,12 @@ namespace NotificationService.Middleware
                 context.Response.StatusCode = 401;
                 await context.Response.WriteAsync(unauthorizedAcces.Message);
             }
+            catch (AccessForbiddenException forbiddenException)
+            {
+                _logger.LogError(forbiddenException, forbiddenException.Message);
+                context.Response.StatusCode = 403;
+                await context.Response.WriteAsync(forbiddenException.Message);
+            }
             catch (Exception e)
             {
                 _logger.LogError(e, e.Message);

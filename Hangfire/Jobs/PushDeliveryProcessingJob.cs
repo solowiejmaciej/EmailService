@@ -6,10 +6,10 @@ using Hangfire;
 using Hangfire.Server;
 using Microsoft.Extensions.Options;
 using NotificationService.Entities.NotificationEntities;
+using NotificationService.Models;
 using NotificationService.Models.AppSettings;
 using NotificationService.Repositories;
 using System.Text.Json;
-using NotificationService.Models;
 using Notification = Google.Apis.FirebaseCloudMessaging.v1.Data.Notification;
 
 namespace NotificationService.Hangfire.Jobs

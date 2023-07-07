@@ -2,16 +2,16 @@
 using FluentValidation;
 using NotificationService.Entities;
 using NotificationService.Models.Requests;
+using NotificationService.Models.Requests.Update;
 
 namespace NotificationService.Models.Validation.RequestValidation
 {
-    public class UserRegisterRequestValidation : AbstractValidator<UserRegisterRequest>
+    public class UpdateUserRequestValidation : AbstractValidator<UpdateUserRequest>
     {
-        public UserRegisterRequestValidation(NotificationDbContext dbContext)
+        public UpdateUserRequestValidation(NotificationDbContext dbContext)
         {
             RuleFor(u => u.Email)
                 .EmailAddress()
-                .NotEmpty()
                 .Custom(
                     (value, context) =>
                     {
@@ -22,14 +22,17 @@ namespace NotificationService.Models.Validation.RequestValidation
                             context.AddFailure("Email", "Already in use");
                         }
                     });
-            RuleFor(u => u.Password)
-                .NotEmpty()
-                .Equal(u => u.ConfirmPassword);
-            RuleFor(u => u.ConfirmPassword)
-                .NotEmpty();
             RuleFor(u => u.PhoneNumber)
-                .NotEmpty()
                 .Matches(new Regex(@"^\+?[1-9][0-9]{8,8}$")).WithMessage("PhoneNumber not valid");
+            RuleFor(u => u.Firstname)
+                .MinimumLength(2)
+                .MaximumLength(25);
+            RuleFor(u => u.Surname)
+                .MinimumLength(2)
+                .MaximumLength(25);
+            RuleFor(u => u.DeviceId)
+                .MinimumLength(10)
+                .MaximumLength(100);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using MediatR;
-using NotificationService.MediatR.Queries;
 using NotificationService.MediatR.Queries.GetAll;
 using NotificationService.Models.Dtos;
 using NotificationService.Repositories;
