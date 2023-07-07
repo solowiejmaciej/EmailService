@@ -1,6 +1,6 @@
 ﻿namespace NotificationService.Models.AppSettings
 {
-    public class RedisConfig
+    public class RedisSettings
     {
         public string Endpoints { get; set; }
         public string Password { get; set; }

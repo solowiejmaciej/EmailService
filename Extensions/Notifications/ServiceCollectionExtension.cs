@@ -29,9 +29,9 @@ namespace NotificationService.Extensions.Notifications
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            var redisOptions = configuration.GetSection("RedisSettings");
-            var smtpConfig = configuration.GetSection(nameof(SMTPConfig));
-            var googleFirebaseSettings = configuration.GetSection("GoogleFirebase");
+            var redisSettings = configuration.GetSection("RedisSettings");
+            var smtpSettings = configuration.GetSection("SMTPSettings");
+            var googleFirebaseSettings = configuration.GetSection("GoogleFirebaseSettings");
             var smsSettings = configuration.GetSection("SmsSettings");
 
             // Add services to the container.
@@ -55,14 +55,13 @@ namespace NotificationService.Extensions.Notifications
             services.AddScoped<IRecipientService, RecipientService>();
 
             //Config
-            services.Configure<SMTPConfig>(smtpConfig);
-            services.Configure<RedisConfig>(redisOptions);
-            services.Configure<GoogleFirebaseConfig>(googleFirebaseSettings);
-            services.Configure<SmsConfig>(smsSettings);
+            services.Configure<SMTPSettings>(smtpSettings);
+            services.Configure<RedisSettings>(redisSettings);
+            services.Configure<GoogleFirebaseSettings>(googleFirebaseSettings);
+            services.Configure<SmsSettings>(smsSettings);
 
             //Middleware
             services.AddScoped<ErrorHandlingMiddleware>();
-            services.AddScoped<ApiKeyAuthMiddleware>();
 
             //Validation
             services.AddFluentValidationAutoValidation();

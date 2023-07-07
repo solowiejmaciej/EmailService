@@ -12,9 +12,9 @@ namespace NotificationService.Health
 
     public class SmsPlanetApiHealthCheck : IHealthCheck
     {
-        private readonly SmsConfig _config;
+        private readonly SmsSettings _config;
 
-        public SmsPlanetApiHealthCheck(IOptions<SmsConfig> config)
+        public SmsPlanetApiHealthCheck(IOptions<SmsSettings> config)
         {
             _config = config.Value;
         }

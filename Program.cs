@@ -109,6 +109,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions()
 });
 
 app.MapControllers();
-//app.UseMiddleware<ApiKeyAuthMiddleware>();
+app.UseMiddleware<ApiKeyAuthMiddleware>();
 app.UseStatusCodePages();
 app.Run();

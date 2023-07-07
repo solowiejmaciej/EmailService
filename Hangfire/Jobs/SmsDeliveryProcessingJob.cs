@@ -15,11 +15,11 @@ public class SmsDeliveryProcessingJob
 {
     private readonly ILogger<SmsDeliveryProcessingJob> _logger;
     private readonly ISmsRepository _repo;
-    private readonly SmsConfig _config;
+    private readonly SmsSettings _config;
 
     public SmsDeliveryProcessingJob(
         ILogger<SmsDeliveryProcessingJob> logger,
-        IOptions<SmsConfig> config,
+        IOptions<SmsSettings> config,
         ISmsRepository repository
         )
     {

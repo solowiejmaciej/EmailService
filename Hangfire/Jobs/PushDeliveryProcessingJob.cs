@@ -17,12 +17,12 @@ namespace NotificationService.Hangfire.Jobs
     public class PushDeliveryProcessingJob
     {
         private readonly ILogger<PushDeliveryProcessingJob> _logger;
-        private readonly IOptions<GoogleFirebaseConfig> _config;
+        private readonly IOptions<GoogleFirebaseSettings> _config;
         private readonly IPushRepository _repository;
 
         public PushDeliveryProcessingJob(
             ILogger<PushDeliveryProcessingJob> logger,
-            IOptions<GoogleFirebaseConfig> config,
+            IOptions<GoogleFirebaseSettings> config,
             IPushRepository repository
         )
         {

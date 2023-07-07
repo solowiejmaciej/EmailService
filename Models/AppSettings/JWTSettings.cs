@@ -1,6 +1,6 @@
 ﻿namespace NotificationService.Models.AppSettings
 {
-    public class JWTConfig
+    public class JWTSettings
     {
         public string JwtPublicKey { get; set; }
         public int JwtExpireMinutes { get; set; }

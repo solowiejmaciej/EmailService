@@ -12,7 +12,7 @@ namespace NotificationService.Extensions.Events
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            AzureServiceBusConfig azureServiceBusConfig = new AzureServiceBusConfig();
+            var azureServiceBusConfig = new AzureServiceBusSettings();
             var azureConfigurationSection = configuration.GetSection("AzureServiceBusSettings");
             azureConfigurationSection.Bind(azureServiceBusConfig);
 

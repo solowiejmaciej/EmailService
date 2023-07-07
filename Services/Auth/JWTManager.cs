@@ -21,12 +21,13 @@ public class JwtManager : IJWTManager
 {
     private readonly NotificationDbContext _dbContext;
     private readonly IPasswordHasher<ApplicationUser> _passwordHasher;
-    private readonly IOptions<JWTConfig> _jwtAppSettings;
+    private readonly IOptions<JWTSettings> _jwtAppSettings;
 
     public JwtManager(
         NotificationDbContext dbcontext,
         IPasswordHasher<ApplicationUser> passwordHasher,
-        IOptions<JWTConfig> config)
+        IOptions<JWTSettings> config
+        )
     {
         _jwtAppSettings = config;
         _dbContext = dbcontext;

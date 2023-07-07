@@ -1,6 +1,6 @@
 ﻿namespace NotificationService.Models.AppSettings
 {
-    public class SmsConfig
+    public class SmsSettings
     {
         public string Key { get; set; }
         public string Password { get; set; }

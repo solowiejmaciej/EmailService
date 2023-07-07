@@ -13,11 +13,11 @@ namespace NotificationService.Controllers.Notifications
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    public class EmailController : ControllerBase
+    public class EmailsController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public EmailController(IMediator mediator)
+        public EmailsController(IMediator mediator)
         {
             _mediator = mediator;
         }

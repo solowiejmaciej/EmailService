@@ -3,7 +3,7 @@ using NotificationService.Models.Responses;
 
 namespace NotificationService.MediatR.Commands.CreateNew
 {
-    public class CreateNewUserCommand : IRequest<TokenResponse>
+    public record CreateNewUserCommand : IRequest<TokenResponse>
     {
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }

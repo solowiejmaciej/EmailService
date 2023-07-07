@@ -1,11 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using NotificationService.Entities;
-using NotificationService.Models.AppSettings;
 using NotificationService.Models.Requests;
 using NotificationService.Models.Validation.RequestValidation;
 using NotificationService.Repositories;
-using NotificationService.Services;
 using NotificationService.Services.Auth;
 using NotificationService.UserContext;
 

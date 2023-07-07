@@ -10,42 +10,45 @@ using NotificationService.Models.Requests;
 
 namespace NotificationService.Controllers.Notifications
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class SmsController : ControllerBase
+    public class PushsController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public SmsController(IMediator mediator)
+        public PushsController(
+            IMediator mediator
+            )
         {
             _mediator = mediator;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(
-            [FromBody] AddSmsRequest request,
-            [FromQuery] SmsRequestQuerryParameters parameters
-        )
+        public async Task<ActionResult> Add(
+            [FromBody] AddPushRequest request,
+            [FromQuery] PushRequestQuerryParameters parameters
+            )
         {
-            var command = new CreateNewSmsCommand()
+            var command = new CreateNewPushCommand()
             {
                 Content = request.Content,
+                Title = request.Title,
                 RecipiantId = parameters.UserId
             };
-
-            var createdSmsId = await _mediator.Send(command);
-            return Created($"/api/Sms/{createdSmsId}", command);
+            var createdPushId = await _mediator.Send(command);
+            return Created($"/api/Push/{createdPushId}", command);
         }
 
         [Authorize]
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
-            var querry = new GetAllSmsQuerry()
+            var querry = new GetAllPushesQuerry()
             {
             };
-            var allSmsDtoByCurrentUser = await _mediator.Send(querry);
-            return Ok(allSmsDtoByCurrentUser);
+            var allPushesDtoByCurrentUser = await _mediator.Send(querry);
+            return Ok(allPushesDtoByCurrentUser);
         }
 
         [Authorize]
@@ -53,20 +56,20 @@ namespace NotificationService.Controllers.Notifications
         [HttpGet]
         public async Task<ActionResult> GetById([FromRoute] int id)
         {
-            var querry = new GetSmsByIdQuerry()
+            var querry = new GetPushByIdQuerry()
             {
                 Id = id
             };
 
-            var smsCreatedByCurrentUserWithSearchId = await _mediator.Send(querry);
-            return Ok(smsCreatedByCurrentUserWithSearchId);
+            var pushCreatedByCurrentUserWithSearchId = await _mediator.Send(querry);
+            return Ok(pushCreatedByCurrentUserWithSearchId);
         }
 
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var command = new DeleteSmsCommand()
+            var command = new DeletePushCommand()
             {
                 Id = id
             };

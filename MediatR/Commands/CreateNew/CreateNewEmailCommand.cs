@@ -2,7 +2,7 @@
 
 namespace NotificationService.MediatR.Commands.CreateNew
 {
-    public class CreateNewEmailCommand : IRequest<int>
+    public record CreateNewEmailCommand : IRequest<int>
     {
         public string Subject { get; set; }
         public string Content { get; set; }
