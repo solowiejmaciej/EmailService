@@ -2,7 +2,7 @@
 
 namespace NotificationService.Models.AppSettings;
 
-public class GoogleFirebaseConfig
+public class GoogleFirebaseSettings
 {
     [Required(AllowEmptyStrings = false)]
     public string? type { get; set; }

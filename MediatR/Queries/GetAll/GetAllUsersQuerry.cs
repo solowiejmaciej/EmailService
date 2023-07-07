@@ -3,7 +3,7 @@ using NotificationService.Models.Dtos;
 
 namespace NotificationService.MediatR.Queries.GetAll
 {
-    public class GetAllUsersQuerry : IRequest<List<UserDto>>
+    public record GetAllUsersQuerry : IRequest<List<UserDto>>
     {
     }
 }

@@ -32,6 +32,8 @@ namespace AuthService.Controllers
                 DeviceId = user.DeviceId,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
+                Firstname = user.Firstname,
+                Surname = user.Surname,
             };
             var response = await _mediator.Send(command);
             return Ok(response);

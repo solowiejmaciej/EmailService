@@ -3,7 +3,7 @@ using NotificationService.Models.Dtos;
 
 namespace NotificationService.MediatR.Queries.GetAll
 {
-    public class GetAllPushesQuerry : IRequest<List<PushNotificationDto>>
+    public record GetAllPushesQuerry : IRequest<List<PushNotificationDto>>
     {
     }
 }

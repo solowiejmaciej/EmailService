@@ -2,7 +2,7 @@
 
 namespace NotificationService.MediatR.Commands.CreateNew
 {
-    public class CreateNewPushCommand : IRequest<int>
+    public record CreateNewPushCommand : IRequest<int>
     {
         public string Title { get; set; }
         public string Content { get; set; }

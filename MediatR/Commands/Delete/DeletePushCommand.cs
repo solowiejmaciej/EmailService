@@ -2,7 +2,7 @@
 
 namespace NotificationService.MediatR.Commands.Delete
 {
-    public class DeletePushCommand : IRequest
+    public record DeletePushCommand : IRequest
     {
         public int Id { get; set; }
     }

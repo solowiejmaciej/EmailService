@@ -18,7 +18,7 @@ namespace NotificationService.Services
     {
         private IDatabase _cacheDb;
 
-        public CacheService(IOptions<RedisConfig> config)
+        public CacheService(IOptions<RedisSettings> config)
 
         {
             var redis = ConnectionMultiplexer.Connect(new ConfigurationOptions

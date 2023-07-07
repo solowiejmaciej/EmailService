@@ -1,6 +1,6 @@
 ﻿namespace NotificationService.Models.AppSettings
 {
-    public class AzureServiceBusConfig
+    public class AzureServiceBusSettings
     {
         public string ConnectionString { get; set; }
         public string QueueName { get; set; }

@@ -38,11 +38,11 @@ public static class ServiceCollectionExtensions
 
     public static IApplicationBuilder UseHangfire(this IApplicationBuilder app)
     {
-        var notificationAppSettings = new ConfigurationBuilder()
+        var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .Build();
 
-        var hangfireConfig = notificationAppSettings.GetSection("HangfireSettings");
+        var hangfireSettings = configuration.GetSection("HangfireSettings");
 
         app.UseHangfireDashboard("/hangfire", new DashboardOptions()
         {
@@ -51,8 +51,8 @@ public static class ServiceCollectionExtensions
             {
                 new HangfireCustomBasicAuthenticationFilter()
                 {
-                    User = hangfireConfig["UserName"],
-                    Pass = hangfireConfig["Password"]
+                    User = hangfireSettings["UserName"],
+                    Pass = hangfireSettings["Password"]
                 }
             }
         });

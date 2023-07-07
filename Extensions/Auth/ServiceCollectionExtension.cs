@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Models.AppSettings;
+using NotificationService.Middleware;
 using System.Security.Cryptography;
 
 public static class ServiceCollectionExtension
@@ -13,11 +14,18 @@ public static class ServiceCollectionExtension
             .AddJsonFile("appsettings.json")
             .Build();
 
-        JWTConfig jwtConfig = new JWTConfig();
-        var jwtAppSettings = configuration.GetSection("Auth");
-        jwtAppSettings.Bind(jwtConfig);
+        var jwtSettings = new JWTSettings();
+        var authConfigurationSection = configuration.GetSection("AuthSettings");
+        authConfigurationSection.Bind(jwtSettings);
 
-        services.Configure<JWTConfig>(jwtAppSettings);
+        var apiKeySettings = new ApiKeySettings();
+        var apiKeyConfigurationSection = configuration.GetSection("ApiKeySettings");
+        apiKeyConfigurationSection.Bind(apiKeySettings);
+
+        services.Configure<ApiKeySettings>(apiKeyConfigurationSection);
+        services.Configure<JWTSettings>(authConfigurationSection);
+
+        services.AddScoped<ApiKeyAuthMiddleware>();
 
         services.AddAuthentication(option =>
         {
@@ -28,7 +36,7 @@ public static class ServiceCollectionExtension
         {
             RSA rsa = RSA.Create();
             rsa.ImportSubjectPublicKeyInfo(
-                source: Convert.FromBase64String(jwtConfig.JwtPublicKey),
+                source: Convert.FromBase64String(jwtSettings.JwtPublicKey),
                 bytesRead: out int _
             );
             cfg.RequireHttpsMetadata = false;

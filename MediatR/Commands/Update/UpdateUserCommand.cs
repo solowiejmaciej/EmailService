@@ -3,7 +3,7 @@ using NotificationService.Models.Dtos;
 
 namespace NotificationService.MediatR.Commands.Update
 {
-    public class UpdateUserCommand : IRequest<UserDto>
+    public record UpdateUserCommand : IRequest<UserDto>
     {
         public string Id { get; set; }
         public string? Email { get; set; }

@@ -1,6 +1,6 @@
 ﻿namespace NotificationService.Models.AppSettings
 {
-    public class SMTPConfig
+    public class SMTPSettings
     {
         public string Host { get; set; }
         public int Port { get; set; }

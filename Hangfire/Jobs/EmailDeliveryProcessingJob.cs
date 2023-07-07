@@ -18,11 +18,11 @@ public class EmailDeliveryProcessingJob
     private readonly ILogger<EmailDeliveryProcessingJob> _logger;
     private readonly IEmailsRepository _repo;
     private readonly IRecipientService _recipientService;
-    private readonly SMTPConfig _config;
+    private readonly SMTPSettings _config;
 
     public EmailDeliveryProcessingJob(
         ILogger<EmailDeliveryProcessingJob> logger,
-        IOptions<SMTPConfig> config,
+        IOptions<SMTPSettings> config,
         IEmailsRepository repository,
         IRecipientService recipientService
 
