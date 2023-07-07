@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NotificationService.Entities;
 using NotificationService.Entities.NotificationEntities;
-using NotificationService.Exceptions;
-using NotificationService.UserContext;
 
 namespace NotificationService.Repositories
 {

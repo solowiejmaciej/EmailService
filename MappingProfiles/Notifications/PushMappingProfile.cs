@@ -9,10 +9,8 @@ namespace NotificationService.MappingProfiles.Notifications;
 
 public class PushMappingProfile : Profile
 {
-    public PushMappingProfile(IUserContext userContext)
+    public PushMappingProfile()
     {
-        var user = userContext.GetCurrentUser();
-
         CreateMap<PushNotification, PushNotificationDto>();
         CreateMap<PushNotificationDto, PushNotificationDto>();
 

@@ -9,6 +9,7 @@ using NotificationService.Models;
 using NotificationService.Models.AppSettings;
 using NotificationService.Repositories;
 using NotificationService.Services;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace NotificationService.Hangfire.Jobs;
 
@@ -55,7 +56,7 @@ public class EmailDeliveryProcessingJob
         }
 
         var mailMessage = new MimeMessage();
-        mailMessage.From.Add(new MailboxAddress("senderNameTBD", "solowiejmaciej@gmail.com"));
+        mailMessage.From.Add(new MailboxAddress(_config.SenderName, _config.SenderEmail));
         mailMessage.To.Add(new MailboxAddress("Client", recipient.Email));
         mailMessage.Subject = email.Subject;
         mailMessage.Body = new TextPart("plain")

@@ -3,9 +3,9 @@ using NotificationService.Models.Requests;
 
 namespace NotificationService.Models.Validation.RequestValidation
 {
-    public class PushRequestValidation : AbstractValidator<PushRequest>
+    public class AddPushRequestValidation : AbstractValidator<AddPushRequest>
     {
-        public PushRequestValidation()
+        public AddPushRequestValidation()
         {
             RuleFor(e => e.Content)
                 .NotEmpty();

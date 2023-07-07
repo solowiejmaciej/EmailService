@@ -3,16 +3,19 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
-using NotificationService.Extensions;
 using NotificationService.Extensions.Auth;
+using NotificationService.Extensions.Events;
 using NotificationService.Extensions.Hangfire;
 using NotificationService.Extensions.Notifications;
+using NotificationService.Extensions.Users;
 using NotificationService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthServiceCollection();
 builder.Services.AddNotificationsServiceCollection();
 builder.Services.AddHangfireServiceCollection();
+builder.Services.AddAzureServiceBus();
+builder.Services.AddUsersServiceCollection();
 
 builder.Services.AddLogging();
 builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
@@ -26,7 +29,6 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "NotificationService", Version = "v1" });
 
-    // Konfiguracja autoryzacji JWT
     var securityScheme = new OpenApiSecurityScheme
     {
         Name = "JWT Authentication",
@@ -108,5 +110,5 @@ app.MapHealthChecks("/health", new HealthCheckOptions()
 
 app.MapControllers();
 //app.UseMiddleware<ApiKeyAuthMiddleware>();
-
+app.UseStatusCodePages();
 app.Run();

@@ -7,7 +7,6 @@ using NotificationService.Exceptions;
 using NotificationService.Models;
 using NotificationService.Models.AppSettings;
 using NotificationService.Repositories;
-using NotificationService.Services;
 using RestSharp;
 
 namespace NotificationService.Hangfire.Jobs;

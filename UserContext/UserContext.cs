@@ -22,17 +22,17 @@ namespace NotificationService.UserContext
 
             if (user is null)
             {
-                throw new UnauthorizedAccessException("currentUser is null");
+                //throw new UnauthorizedAccessException("currentUser is null");
             }
 
             if (user.Identity == null)
             {
-                throw new UnauthorizedAccessException("user.Identity is null");
+                //throw new UnauthorizedAccessException("user.Identity is null");
             }
 
             if (!user.Identity.IsAuthenticated)
             {
-                throw new UnauthorizedAccessException("user.Identity.IsAuthenticated isn't auth");
+                //throw new UnauthorizedAccessException("user.Identity.IsAuthenticated isn't auth");
             }
 
             var userName = user.Identity.Name!;

@@ -1,42 +1,83 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using NotificationService.Models.Dtos;
-using NotificationService.Services.Users;
+using NotificationService.MediatR.Commands.Delete;
+using NotificationService.MediatR.Commands.Update;
+using NotificationService.MediatR.Queries.GetAll;
+using NotificationService.MediatR.Queries.GetById;
+using NotificationService.Models.Requests.Update;
 
-namespace AuthService.Controllers
+namespace NotificationService.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [EnableCors("apiCorsPolicy")]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IMediator _mediator;
 
-        public UserController(IUserService userService)
+        public UserController(
+            IMediator mediator
+        )
         {
-            _userService = userService;
+            _mediator = mediator;
         }
 
         [HttpGet]
-        public List<UserDto> GetAll()
+        public async Task<ActionResult> GetAll()
         {
-            return _userService.GetAll().Result;
+            var querry = new GetAllUsersQuerry()
+            {
+            };
+            var result = await _mediator.Send(querry);
+            return Ok(result);
         }
 
-        [HttpGet("{Id}")]
-        public UserDto GetById(string Id)
+        [HttpGet("{id}")]
+        public async Task<ActionResult> GetById([FromRoute] string id)
         {
-            return _userService.GetById(Id);
+            var querry = new GetUserByIdQuerry()
+            {
+                Id = id
+            };
+
+            var result = await _mediator.Send(querry);
+            return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> Update(
+            [FromRoute] string id,
+            [FromBody] UpdateUserRequest request
+            )
+        {
+            var querry = new UpdateUserCommand()
+            {
+                Id = id,
+                Email = request.Email,
+                PhoneNumber = request.PhoneNumber,
+                DeviceId = request.DeviceId,
+                Firstname = request.Firstname,
+                Surname = request.Surname,
+            };
+
+            var updatedUserDto = await _mediator.Send(querry);
+            return Ok(updatedUserDto);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public ActionResult Delete(string id)
+        public async Task<ActionResult> Delete(string id)
         {
-            _userService.DeleteAsync(id);
-            return NoContent();
+            var querry = new DeleteUserCommand()
+            {
+                Id = id,
+            };
+
+            await _mediator.Send(querry);
+            return Accepted();
         }
     }
 }

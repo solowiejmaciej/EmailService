@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using MediatR;
 using NotificationService.Entities.NotificationEntities;
+using NotificationService.Events;
 using NotificationService.Exceptions;
 using NotificationService.Hangfire.Manager;
-using NotificationService.MediatR.Commands;
 using NotificationService.MediatR.Commands.CreateNew;
 using NotificationService.Repositories;
 using NotificationService.Services;

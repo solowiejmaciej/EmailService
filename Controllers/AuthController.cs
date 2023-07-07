@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using MediatR;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using NotificationService.MediatR.Commands.CreateNew;
+using NotificationService.MediatR.Queries.GetToken;
 using NotificationService.Models.Requests;
 using NotificationService.Services.Auth;
-using NotificationService.Services.Users;
 
 namespace AuthService.Controllers
 {
@@ -11,30 +13,41 @@ namespace AuthService.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IJWTManager _jwtManager;
-        private readonly IUserService _userService;
+        private readonly IMediator _mediator;
 
         public AuthController(
-            IJWTManager jwtManager,
-            IUserService userService
+            IMediator mediator
             )
         {
-            _jwtManager = jwtManager;
-            _userService = userService;
-        }
-
-        [HttpPost("Login")]
-        public ActionResult Login(UserLoginRequest user)
-        {
-            var token = _jwtManager.GenerateJWT(user);
-            return Ok(token);
+            _mediator = mediator;
         }
 
         [HttpPost("Register")]
-        public ActionResult Register(UserRegisterRequest user)
+        public async Task<ActionResult> Register(AddUserRequest user)
         {
-            var token = _userService.Register(user);
-            return Ok(token);
+            var command = new CreateNewUserCommand()
+            {
+                Password = user.Password,
+                ConfirmPassword = user.ConfirmPassword,
+                DeviceId = user.DeviceId,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+            };
+            var response = await _mediator.Send(command);
+            return Ok(response);
+        }
+
+        [HttpPost("Login")]
+        public async Task<ActionResult> Login(UserLoginRequest user)
+        {
+            var querry = new GetTokenQuerry()
+            {
+                Email = user.Email,
+                Password = user.Password
+            };
+
+            var response = await _mediator.Send(querry);
+            return Ok(response);
         }
 
         [HttpPost("Login/QR")]

@@ -1,19 +1,8 @@
-﻿using NotificationService.Models.Validation.RequestValidation;
+﻿namespace NotificationService.Extensions.Auth;
 
-namespace NotificationService.Extensions.Auth;
-
-using Models.AppSettings;
-using Models.Requests;
-using Services;
-using UserContext;
-using Models.Validation;
-using NotificationService.Services.Auth;
-using Services.Users;
-using Entities;
-using FluentValidation;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Models.AppSettings;
 using System.Security.Cryptography;
 
 public static class ServiceCollectionExtension
@@ -29,21 +18,6 @@ public static class ServiceCollectionExtension
         jwtAppSettings.Bind(jwtConfig);
 
         services.Configure<JWTConfig>(jwtAppSettings);
-
-        // Add services to the container.
-
-        //My services
-        services.AddScoped<IJWTManager, JwtManager>();
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IDeviceService, DeviceService>();
-        services.AddScoped<IUserContext, UserContext>();
-
-        //Validation
-        services.AddScoped<IValidator<UserLoginRequest>, UserLoginRequestValidation>();
-        services.AddScoped<IValidator<UserRegisterRequest>, UserRegisterRequestValidation>();
-
-        //PasswordHasher
-        services.AddScoped<IPasswordHasher<ApplicationUser>, PasswordHasher<ApplicationUser>>();
 
         services.AddAuthentication(option =>
         {
