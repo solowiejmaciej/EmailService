@@ -20,9 +20,11 @@ public class CachedEmailsRepository : IEmailsRepository
     public async Task<int> SoftDeleteAsync(int id, string userId, CancellationToken cancellationToken = default)
     {
         var key = $"email-{id}";
-        var secondKey = $"email-{userId}";
+        var secondKey = $"emails-{userId}";
         await _cacheService.RemoveDataAsync(key, cancellationToken);
         await _cacheService.RemoveDataAsync(secondKey, cancellationToken);
+        _logger.LogInformation("cached key {0} removed", key);
+        _logger.LogInformation("cached key {0} removed", secondKey);
         return await _decorated.SoftDeleteAsync(id, userId, cancellationToken);
     }
 
