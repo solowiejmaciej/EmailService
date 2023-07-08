@@ -1,7 +1,7 @@
 
 # NotificationService API
 
-API that allowes users to send Notifications and manage them
+API that allows users to send Notifications and manage them
 
 ## Features
 
@@ -11,13 +11,13 @@ API that allowes users to send Notifications and manage them
 - Email sending with SMTP
 - Push sending with Firebase
 - SMS sending with SMSPlanetAPI
+- Azure Service Bus
 
 
 # Built With
 * ![.Net](https://img.shields.io/badge/.NET-5C2D91?style=for-the-badge&logo=.net&logoColor=white)
 * ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
-* ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
-* ![Google Cloud](https://img.shields.io/badge/Google%20Cloud-%234285F4.svg?style=for-the-badge&logo=google-cloud&logoColor=white) 
+* ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white) 
 * ![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase)
 * ![Azure](https://img.shields.io/badge/azure-%230072C6.svg?style=for-the-badge&logo=azure-devops&logoColor=white) 
 * ![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white) 
@@ -38,11 +38,9 @@ API that allowes users to send Notifications and manage them
 | `Delete Pushes` | `* * * * *` |
 
 ## Requirements
-In order to use this API, you need to use JWT generated in [AuthService](https://github.com/solowiejmaciej/AuthService)
-
 
 ## Auth
-Authorization Header with jwt token
+
 ## Fetch data
 
 ```http

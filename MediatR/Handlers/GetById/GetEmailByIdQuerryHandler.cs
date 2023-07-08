@@ -28,7 +28,7 @@ namespace NotificationService.MediatR.Handlers.GetById
         public async Task<EmailNotificationDto> Handle(GetEmailByIdQuerry request, CancellationToken cancellationToken)
         {
             var currentUser = _userContext.GetCurrentUser();
-            var email = await _repository.GetEmailByIdAndUserIdAsync(request.Id, currentUser.Id);
+            var email = await _repository.GetEmailByIdAndUserIdAsync(request.Id, currentUser.Id, cancellationToken);
 
             if (email == null)
             {

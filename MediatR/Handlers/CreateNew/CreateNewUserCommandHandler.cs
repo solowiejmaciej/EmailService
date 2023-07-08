@@ -1,10 +1,10 @@
-﻿using MediatR;
+﻿using EventsLibrary;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using NotificationService.Entities;
 using NotificationService.Events;
 using NotificationService.MediatR.Commands.CreateNew;
 using NotificationService.MediatR.Queries.GetToken;
-using NotificationService.Models.Requests;
 using NotificationService.Repositories;
 using NotificationService.Services.Auth;
 using NotificationService.Models.Responses;
@@ -13,14 +13,14 @@ namespace NotificationService.MediatR.Handlers.CreateNew
 {
     public class CreateNewUserCommandHandler : IRequestHandler<CreateNewUserCommand, TokenResponse>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUsersRepository _userRepository;
         private readonly IPasswordHasher<ApplicationUser> _passwordHasher;
         private readonly IJWTManager _jwtManager;
         private readonly IEventsPublisher _eventsPublisher;
         private readonly IMediator _mediator;
 
         public CreateNewUserCommandHandler(
-            IUserRepository userRepository,
+            IUsersRepository userRepository,
             IPasswordHasher<ApplicationUser> passwordHasher,
             IJWTManager jwtManager,
             IEventsPublisher eventsPublisher,
@@ -43,7 +43,9 @@ namespace NotificationService.MediatR.Handlers.CreateNew
                 NormalizedEmail = request.Email.ToUpper(),
                 NormalizedUserName = request.Email.ToUpper(),
                 DeviceId = request.DeviceId,
-                PhoneNumber = request.PhoneNumber
+                PhoneNumber = request.PhoneNumber,
+                Firstname = request.Firstname,
+                Surname = request.Surname,
             };
 
             var hashedPass = _passwordHasher.HashPassword(newUser, request.Password);
@@ -58,6 +60,8 @@ namespace NotificationService.MediatR.Handlers.CreateNew
             };
 
             var response = await _mediator.Send(querry, cancellationToken);
+
+            await _eventsPublisher.Publish(new UserCreatedEvent(newUser.Firstname, newUser.Surname, newUser.Email));
 
             return response;
         }

@@ -6,15 +6,12 @@ namespace NotificationService.Middleware
 {
     public class ApiKeyAuthMiddleware : IMiddleware
     {
-        private readonly IConfiguration _configuration;
         private readonly IOptions<ApiKeySettings> _config;
 
         public ApiKeyAuthMiddleware(
-            IConfiguration configuration,
             IOptions<ApiKeySettings> config
         )
         {
-            _configuration = configuration;
             _config = config;
         }
 

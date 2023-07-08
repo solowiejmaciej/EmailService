@@ -8,11 +8,11 @@ namespace NotificationService.MediatR.Handlers.GetAll
 {
     public class GetAllUsersQuerryHandler : IRequestHandler<GetAllUsersQuerry, List<UserDto>>
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUsersRepository _userRepository;
         private readonly IMapper _mapper;
 
         public GetAllUsersQuerryHandler(
-            IUserRepository userRepository,
+            IUsersRepository userRepository,
             IMapper mapper
             )
         {
@@ -22,7 +22,7 @@ namespace NotificationService.MediatR.Handlers.GetAll
 
         public async Task<List<UserDto>> Handle(GetAllUsersQuerry request, CancellationToken cancellationToken)
         {
-            var users = await _userRepository.GetAllAsync();
+            var users = await _userRepository.GetAllAsync(cancellationToken);
             var dtos = _mapper.Map<List<UserDto>>(users);
             return dtos;
         }

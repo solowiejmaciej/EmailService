@@ -6,18 +6,16 @@ namespace NotificationService.Repositories
 {
     public interface ISmsRepository : INotificationRepository
     {
-        Task AddAsync(SmsNotification sms);
+        Task AddAsync(SmsNotification sms, CancellationToken cancellationToken = default);
+        
+        Task<List<SmsNotification>> GetAllSmsToUserIdAsync(string userId, CancellationToken cancellationToken = default);
 
-        void Add(SmsNotification sms);
-
-        Task<List<SmsNotification>> GetAllSmsToUserIdAsync(string userId);
-
-        Task<SmsNotification?> GetSmsByIdAndUserIdAsync(int id, string userId);
+        Task<SmsNotification?> GetSmsByIdAndUserIdAsync(int id, string userId, CancellationToken cancellationToken = default);
 
         void ChangeSmsStatus(int id, EStatus status);
     }
 
-    public class SmsRepository : ISmsRepository
+    public sealed class SmsRepository : ISmsRepository
     {
         private readonly NotificationDbContext _dbContext;
 
@@ -26,10 +24,10 @@ namespace NotificationService.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task AddAsync(SmsNotification sms)
+        public async Task AddAsync(SmsNotification sms, CancellationToken cancellationToken = default)
         {
-            await _dbContext.AddAsync(sms);
-            await SaveAsync();
+            await _dbContext.AddAsync(sms, cancellationToken);
+            await SaveAsync(cancellationToken);
         }
 
         public void Add(SmsNotification sms)
@@ -38,18 +36,21 @@ namespace NotificationService.Repositories
             Save();
         }
 
-        public async Task<List<SmsNotification>> GetAllSmsToUserIdAsync(string userId)
+        public async Task<List<SmsNotification>> GetAllSmsToUserIdAsync(string userId, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.SmsNotifications.Where(e => e.RecipientId == userId && e.Status != EStatus.ToBeDeleted).ToListAsync();
+            return await _dbContext.SmsNotifications.Where(
+                e => e.RecipientId == userId && e.Status != EStatus.ToBeDeleted)
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<SmsNotification?> GetSmsByIdAndUserIdAsync(int id, string userId)
+        public async Task<SmsNotification?> GetSmsByIdAndUserIdAsync(int id, string userId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.SmsNotifications.FirstOrDefaultAsync(
                 e =>
                     e.RecipientId == userId &&
                     e.Status != EStatus.ToBeDeleted &&
-                    e.Id == id
+                    e.Id == id,
+                cancellationToken
             );
         }
 
@@ -67,15 +68,16 @@ namespace NotificationService.Repositories
             Save();
         }
 
-        public async Task<int> SoftDeleteAsync(int id, string userId)
+        public async Task<int> SoftDeleteAsync(int id, string userId, CancellationToken cancellationToken = default)
         {
             var smsToDeleted = await _dbContext.SmsNotifications.FirstOrDefaultAsync(e =>
                 e.Id == id &&
-                e.RecipientId == userId
+                e.RecipientId == userId,
+                cancellationToken
             );
             if (smsToDeleted is null) return 0;
             smsToDeleted.Status = EStatus.ToBeDeleted;
-            await SaveAsync();
+            await SaveAsync(cancellationToken);
             return smsToDeleted.Id;
         }
 
@@ -89,14 +91,14 @@ namespace NotificationService.Repositories
             _dbContext.SaveChanges();
         }
 
-        public async Task SaveAsync()
+        public async Task SaveAsync(CancellationToken cancellationToken)
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         private bool _disposed;
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!_disposed)
             {

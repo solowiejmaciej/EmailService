@@ -16,8 +16,8 @@ namespace NotificationService.Health
         {
             try
             {
-                _cacheService.SetData("Health", "I'm healthy!", DateTimeOffset.Now.AddMinutes(2));
-                _cacheService.GetData<string>("Health");
+                await _cacheService.SetDataAsync("Health", "I'm healthy!", DateTimeOffset.Now.AddMinutes(2));
+                await _cacheService.GetDataAsync<string>("Health");
             }
             catch (Exception e)
             {

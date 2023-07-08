@@ -11,12 +11,12 @@ namespace NotificationService.MediatR.Handlers.Update
 {
     public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserDto>
     {
-        private readonly IUserRepository _repository;
+        private readonly IUsersRepository _repository;
         private readonly IMapper _mapper;
         private readonly IUserContext _userContext;
 
         public UpdateUserCommandHandler(
-            IUserRepository repository,
+            IUsersRepository repository,
             IMapper mapper,
             IUserContext userContext
             )
@@ -28,7 +28,7 @@ namespace NotificationService.MediatR.Handlers.Update
 
         public async Task<UserDto> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _repository.GetByIdAsync(request.Id);
+            var user = await _repository.GetByIdAsync(request.Id, cancellationToken);
             if (user is null) throw new NotFoundException($"User with id {request.Id} not found");
 
             var currentUser = _userContext.GetCurrentUser();
@@ -61,7 +61,7 @@ namespace NotificationService.MediatR.Handlers.Update
             {
                 user.PhoneNumber = request.PhoneNumber;
             }
-            await _repository.SaveAsync();
+            await _repository.SaveAsync(cancellationToken);
             var dto = _mapper.Map<UserDto>(user);
             return dto;
         }

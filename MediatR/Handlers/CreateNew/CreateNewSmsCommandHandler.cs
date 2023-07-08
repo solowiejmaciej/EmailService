@@ -46,8 +46,8 @@ namespace NotificationService.MediatR.Handlers.CreateNew
             }
 
             sms.RecipientId = request.RecipiantId;
-            await _repository.AddAsync(sms);
-            await _repository.SaveAsync();
+            await _repository.AddAsync(sms, cancellationToken);
+            await _repository.SaveAsync(cancellationToken);
             _jobManager.EnqueueSmsDeliveryDeliveryJob(sms, recipient);
             return sms.Id;
         }

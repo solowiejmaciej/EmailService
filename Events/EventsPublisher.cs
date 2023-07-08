@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
-
 namespace NotificationService.Events;
 
 public interface IEventsPublisher

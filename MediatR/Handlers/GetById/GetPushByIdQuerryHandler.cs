@@ -27,7 +27,7 @@ namespace NotificationService.MediatR.Handlers.GetById
         public async Task<PushNotificationDto> Handle(GetPushByIdQuerry request, CancellationToken cancellationToken)
         {
             var currentUser = _userContext.GetCurrentUser();
-            var push = await _repository.GetPushByIdAndUserIdAsync(request.Id, currentUser.Id);
+            var push = await _repository.GetPushByIdAndUserIdAsync(request.Id, currentUser.Id, cancellationToken);
 
             if (push == null)
             {

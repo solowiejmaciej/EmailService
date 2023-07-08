@@ -10,7 +10,6 @@ using NotificationService.Models.Requests.Update;
 
 namespace NotificationService.Controllers
 {
-    [Authorize]
     [EnableCors("apiCorsPolicy")]
     [Route("api/[controller]")]
     [ApiController]
@@ -28,32 +27,28 @@ namespace NotificationService.Controllers
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
-            var querry = new GetAllUsersQuerry()
-            {
-            };
-            var result = await _mediator.Send(querry);
+            var result = await _mediator.Send(new GetAllUsersQuerry());
             return Ok(result);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult> GetById([FromRoute] string id)
         {
-            var querry = new GetUserByIdQuerry()
+            var result = await _mediator.Send(new GetUserByIdQuerry()
             {
                 Id = id
-            };
-
-            var result = await _mediator.Send(querry);
+            });
             return Ok(result);
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(
             [FromRoute] string id,
             [FromBody] UpdateUserRequest request
             )
         {
-            var querry = new UpdateUserCommand()
+            var updateUserCommand = new UpdateUserCommand()
             {
                 Id = id,
                 Email = request.Email,
@@ -63,7 +58,7 @@ namespace NotificationService.Controllers
                 Surname = request.Surname,
             };
 
-            var updatedUserDto = await _mediator.Send(querry);
+            var updatedUserDto = await _mediator.Send(updateUserCommand);
             return Ok(updatedUserDto);
         }
 
@@ -71,12 +66,10 @@ namespace NotificationService.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(string id)
         {
-            var querry = new DeleteUserCommand()
+            await _mediator.Send(new DeleteUserCommand()
             {
                 Id = id,
-            };
-
-            await _mediator.Send(querry);
+            });
             return Accepted();
         }
     }

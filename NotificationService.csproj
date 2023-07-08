@@ -26,9 +26,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="7.0.8" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.2" />
     <PackageReference Include="RestSharp" Version="110.2.0" />
-    <PackageReference Include="StackExchange.Redis" Version="2.6.104" />
+    <PackageReference Include="Scutor.AspnetCore.Wireup" Version="1.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.7.34" />
     <PackageReference Include="MailKit" Version="3.6.0" />
@@ -40,6 +41,16 @@
   <ItemGroup>
     <Folder Include="MappingProfiles\User\" />
     <Folder Include="MappingProfiles\Recipients\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EventsLibrary\EventsLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="EventsClassLibrary\UserCreatedEvent.cs">
+      <Link>ClassLibrary1\UserCreatedEvent.cs</Link>
+    </Compile>
   </ItemGroup>
 
 

@@ -41,8 +41,8 @@ namespace NotificationService.MediatR.Handlers.CreateNew
             }
 
             email.RecipientId = request.RecipiantId;
-            await _repository.AddAsync(email);
-            await _repository.SaveAsync();
+            await _repository.AddAsync(email, cancellationToken);
+            await _repository.SaveAsync(cancellationToken);
             _jobManager.EnqueueEmailDeliveryDeliveryJob(email, recipient);
             return email.Id;
         }
