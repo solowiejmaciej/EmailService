@@ -1,65 +1,56 @@
 ﻿using Microsoft.Extensions.Options;
 using NotificationService.Models.AppSettings;
 using StackExchange.Redis;
-using System.Text.Json;
+using Microsoft.Extensions.Caching.Distributed;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace NotificationService.Services
 {
     public interface ICacheService
     {
-        T GetData<T>(string key);
+        Task<T?> GetDataAsync<T>(string key, CancellationToken cancellationToken = default);
 
-        bool SetData<T>(string key, T value, DateTimeOffset expirationTime);
+        Task SetDataAsync<T>(string key, T value, DateTimeOffset expirationTime, CancellationToken cancellationToken = default);
 
-        object RemoveData(string key);
+        Task RemoveDataAsync(string key, CancellationToken cancellationToken = default);
     }
 
     public class CacheService : ICacheService
     {
-        private IDatabase _cacheDb;
+        private IDistributedCache _distributedCache;
 
-        public CacheService(IOptions<RedisSettings> config)
-
+        public CacheService(IDistributedCache distributedCache)
         {
-            var redis = ConnectionMultiplexer.Connect(new ConfigurationOptions
-            {
-                EndPoints = { config.Value.Endpoints },
-                Password = config.Value.Password,
-                //Ssl = true,
-                AbortOnConnectFail = false,
-                ConnectTimeout = 5000
-            }
-            );
-            _cacheDb = redis.GetDatabase();
+            _distributedCache = distributedCache;
         }
 
-        public T GetData<T>(string key)
+        public async Task<T?> GetDataAsync<T>(string key, CancellationToken cancellationToken = default)
         {
-            var value = _cacheDb.StringGet(key);
+            var value = await _distributedCache.GetStringAsync(key, cancellationToken);
             if (!string.IsNullOrEmpty(value))
             {
                 return JsonSerializer.Deserialize<T>(value);
             }
-
             return default;
         }
 
-        public bool SetData<T>(string key, T value, DateTimeOffset expirationTime)
+        public async Task SetDataAsync<T>(string key, T value, DateTimeOffset expirationTime, CancellationToken cancellationToken = default)
         {
             var expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
-            var isSet = _cacheDb.StringSet(key, JsonSerializer.Serialize(value), expiryTime);
-            return isSet;
+            await _distributedCache.SetStringAsync(
+                key,
+                JsonConvert.SerializeObject(value),
+                new DistributedCacheEntryOptions()
+                {
+                    AbsoluteExpirationRelativeToNow = expiryTime
+                },
+                cancellationToken
+            );
         }
-
-        public object RemoveData(string key)
+        public async Task RemoveDataAsync (string key, CancellationToken cancellationToken = default)
         {
-            var exists = _cacheDb.KeyExists(key);
-            if (exists)
-            {
-                return _cacheDb.KeyDelete(key);
-            }
-
-            return false;
+            await _distributedCache.RemoveAsync(key, cancellationToken);
         }
     }
 }

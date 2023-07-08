@@ -43,11 +43,9 @@ namespace NotificationService.Controllers.Notifications
         [HttpGet]
         public async Task<ActionResult> GetAll()
         {
-            var querry = new GetAllEmailsQuerry()
-            {
-            };
-            var allEmailsDtosByCurrentUser = await _mediator.Send(querry);
-            return Ok(allEmailsDtosByCurrentUser);
+            var query = new GetAllEmailsQuerry();
+            var emailDtosByCurrentUser = await _mediator.Send(query);
+            return Ok(emailDtosByCurrentUser);
         }
 
         [Authorize]
@@ -55,12 +53,12 @@ namespace NotificationService.Controllers.Notifications
         [HttpGet]
         public async Task<ActionResult> GetById([FromRoute] int id)
         {
-            var querry = new GetEmailByIdQuerry()
+            var query = new GetEmailByIdQuerry()
             {
                 Id = id
             };
 
-            var emailCreatedByCurrentUserWithSearchId = await _mediator.Send(querry);
+            var emailCreatedByCurrentUserWithSearchId = await _mediator.Send(query);
             return Ok(emailCreatedByCurrentUserWithSearchId);
         }
 

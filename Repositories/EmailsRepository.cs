@@ -6,16 +6,16 @@ namespace NotificationService.Repositories
 {
     public interface IEmailsRepository : INotificationRepository
     {
-        Task<int> AddAsync(EmailNotification email);
+        Task<int> AddAsync(EmailNotification email, CancellationToken cancellationToken = default);
 
-        Task<List<EmailNotification>> GetAllEmailsToUserIdAsync(string userId);
+        Task<List<EmailNotification>> GetAllEmailsToUserIdAsync(string userId, CancellationToken cancellationToken = default);
 
-        Task<EmailNotification?> GetEmailByIdAndUserIdAsync(int id, string userId);
+        Task<EmailNotification?> GetEmailByIdAndUserIdAsync(int id, string userId, CancellationToken cancellationToken = default);
 
         void ChangeEmailStatus(int id, EStatus status);
     }
 
-    public class EmailsRepository : IEmailsRepository
+    public sealed class EmailsRepository : IEmailsRepository
     {
         private readonly NotificationDbContext _dbContext;
 
@@ -24,25 +24,28 @@ namespace NotificationService.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<int> AddAsync(EmailNotification email)
+        public async Task<int> AddAsync(EmailNotification email, CancellationToken cancellationToken = default)
         {
-            var newEmail = await _dbContext.AddAsync(email);
-            await _dbContext.SaveChangesAsync();
+            var newEmail = await _dbContext.AddAsync(email, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return newEmail.Entity.Id;
         }
 
-        public async Task<List<EmailNotification>> GetAllEmailsToUserIdAsync(string userId)
+        public async Task<List<EmailNotification>> GetAllEmailsToUserIdAsync(string userId, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.EmailsNotifications.Where(e => e.RecipientId == userId && e.Status != EStatus.ToBeDeleted).ToListAsync();
+            return await _dbContext.EmailsNotifications.Where(
+                    e => e.RecipientId == userId && e.Status != EStatus.ToBeDeleted)
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task<EmailNotification?> GetEmailByIdAndUserIdAsync(int id, string userId)
+        public async Task<EmailNotification?> GetEmailByIdAndUserIdAsync(int id, string userId, CancellationToken cancellationToken = default)
         {
             return await _dbContext.EmailsNotifications.FirstOrDefaultAsync(
                 e =>
                     e.RecipientId == userId &&
                     e.Status != EStatus.ToBeDeleted &&
-                    e.Id == id
+                    e.Id == id,
+                cancellationToken
             );
         }
 
@@ -60,15 +63,16 @@ namespace NotificationService.Repositories
             Save();
         }
 
-        public async Task<int> SoftDeleteAsync(int id, string userId)
+        public async Task<int> SoftDeleteAsync(int id, string userId, CancellationToken cancellationToken = default)
         {
             var emailToDeleted = await _dbContext.EmailsNotifications.FirstOrDefaultAsync(e =>
                 e.Id == id &&
-                e.RecipientId == userId
+                e.RecipientId == userId,
+                cancellationToken
             );
             if (emailToDeleted is null) return 0;
             emailToDeleted.Status = EStatus.ToBeDeleted;
-            await SaveAsync();
+            await SaveAsync(cancellationToken);
             return emailToDeleted.Id;
         }
 
@@ -82,14 +86,14 @@ namespace NotificationService.Repositories
             _dbContext.SaveChanges();
         }
 
-        public async Task SaveAsync()
+        public async Task SaveAsync(CancellationToken cancellationToken = default)
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         private bool _disposed;
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!_disposed)
             {

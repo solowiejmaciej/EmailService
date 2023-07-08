@@ -23,7 +23,7 @@ namespace NotificationService.MediatR.Handlers.Delete
         public async Task Handle(DeleteSmsCommand request, CancellationToken cancellationToken)
         {
             var user = _userContext.GetCurrentUser();
-            var deletedSmsId = await _repository.SoftDeleteAsync(request.Id, user.Id);
+            var deletedSmsId = await _repository.SoftDeleteAsync(request.Id, user.Id, cancellationToken);
 
             if (deletedSmsId == 0)
             {

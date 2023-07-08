@@ -28,7 +28,7 @@ namespace NotificationService.MediatR.Handlers.GetAll
         {
             var currentUser = _userContext.GetCurrentUser();
 
-            var emails = await _repository.GetAllPushesToUserIdAsync(currentUser.Id);
+            var emails = await _repository.GetAllPushesToUserIdAsync(currentUser.Id, cancellationToken);
             var dtos = _mapper.Map<List<PushNotificationDto>>(emails);
             return dtos;
         }

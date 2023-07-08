@@ -1,21 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using NotificationService.Entities;
-using NotificationService.Models.Dtos;
 
 namespace NotificationService.Repositories
 {
-    public interface IUserRepository : IDisposable
+    public interface IUsersRepository : IDisposable
     {
-        Task<string> AddAsyncWithDefaultRole(ApplicationUser user);
+        Task<string> AddAsyncWithDefaultRole(ApplicationUser user, CancellationToken cancellationToken = default);
 
-        Task<ApplicationUser?> GetByIdAsync(string id);
+        Task<ApplicationUser?> GetByIdAsync(string id, CancellationToken cancellationToken = default);
 
-        Task<List<ApplicationUser>> GetAllAsync();
+        Task<List<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        Task SaveAsync();
+        Task SaveAsync(CancellationToken cancellationToken = default);
     }
 
-    public class UsersRepository : IUserRepository
+    public sealed class UsersRepository : IUsersRepository
     {
         private readonly NotificationDbContext _dbContext;
 
@@ -24,52 +24,47 @@ namespace NotificationService.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<string> AddAsyncWithDefaultRole(ApplicationUser user)
+        public async Task<string> AddAsyncWithDefaultRole(ApplicationUser user, CancellationToken cancellationToken = default)
         {
-            var userInDb = await _dbContext.Users.AddAsync(user);
-            var roleUserId = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "User");
-            await _dbContext.UserRoles.AddAsync(new()
+            var userInDb = await _dbContext.Users.AddAsync(user, cancellationToken);
+            var roleUserId = await _dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "User", cancellationToken);
+            await _dbContext.UserRoles.AddAsync(new IdentityUserRole<string>
             {
                 RoleId = roleUserId!.Id,
-                UserId = userInDb.Entity.Id
-            });
-            await _dbContext.SaveChangesAsync();
+                UserId = userInDb.Entity.Id,
+            }, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return userInDb.Entity.Id;
         }
 
-        public async Task<List<ApplicationUser>> GetAllAsync()
+        public async Task<List<ApplicationUser>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            return await _dbContext.Users.ToListAsync();
+            return await _dbContext.Users.ToListAsync(cancellationToken);
         }
 
-        public async Task<ApplicationUser?> GetByIdAsync(string id)
+        public async Task<ApplicationUser?> GetByIdAsync(string id, CancellationToken cancellationToken = default)
         {
-            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+            return await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
         }
 
         public Task<int> SoftDeleteAsync(string userId)
         {
             throw new NotImplementedException();
         }
-
-        public void SoftDelete(string id)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public void Save()
         {
-            throw new NotImplementedException();
+            _dbContext.SaveChanges();
         }
 
-        public async Task SaveAsync()
+        public async Task SaveAsync(CancellationToken cancellationToken = default)
         {
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         private bool _disposed;
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!_disposed)
             {

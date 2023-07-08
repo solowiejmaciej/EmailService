@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using NotificationService.Entities;
 using NotificationService.Models.Requests;
+using NotificationService.Models.Requests.Update;
 using NotificationService.Models.Validation.RequestValidation;
 using NotificationService.Repositories;
+using NotificationService.Repositories.Cached;
 using NotificationService.Services.Auth;
 using NotificationService.UserContext;
 
@@ -23,7 +25,11 @@ public static class ServiceCollectionExtension
 
         //PasswordHasher
         services.AddScoped<IPasswordHasher<ApplicationUser>, PasswordHasher<ApplicationUser>>();
+        
+        services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserRequestValidation>();
 
-        services.AddScoped<IUserRepository, UsersRepository>();
+        
+        services.AddScoped<IUsersRepository,UsersRepository>();
+        services.Decorate<IUsersRepository, CachedUsersRepository>();
     }
 }

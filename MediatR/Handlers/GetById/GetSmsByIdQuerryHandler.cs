@@ -28,7 +28,7 @@ namespace NotificationService.MediatR.Handlers.GetById
         public async Task<SmsNotificationDto> Handle(GetSmsByIdQuerry request, CancellationToken cancellationToken)
         {
             var currentUser = _userContext.GetCurrentUser();
-            var sms = await _repository.GetSmsByIdAndUserIdAsync(request.Id, currentUser.Id);
+            var sms = await _repository.GetSmsByIdAndUserIdAsync(request.Id, currentUser.Id, cancellationToken);
             var dto = _mapper.Map<SmsNotificationDto>(sms);
 
             if (sms == null)

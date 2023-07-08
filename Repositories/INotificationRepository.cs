@@ -2,13 +2,11 @@
 {
     public interface INotificationRepository : IDisposable
     {
-        Task<int> SoftDeleteAsync(int id, string userId);
-
-        void SoftDelete(int id);
-
+        Task<int> SoftDeleteAsync(int id, string userId, CancellationToken cancellationToken = default);
+        
         public void Save();
 
-        Task SaveAsync();
+        Task SaveAsync(CancellationToken cancellationToken = default);
 
         void DeleteInBackground();
     }

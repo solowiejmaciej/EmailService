@@ -1,9 +1,6 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.EntityFrameworkCore;
-using NotificationService.Entities;
-using NotificationService.Health;
 using NotificationService.MappingProfiles.Notifications;
 using NotificationService.MappingProfiles.Recipients;
 using NotificationService.Middleware;
@@ -14,10 +11,8 @@ using NotificationService.Models.Validation.QueryParametersValidation;
 using NotificationService.Models.Validation.RequestValidation;
 using NotificationService.Repositories;
 using NotificationService.Services;
-using NotificationService.Services.Notifications;
-using System.Reflection;
 using NotificationService.MappingProfiles.User;
-using NotificationService.Models.Requests.Update;
+using NotificationService.Repositories.Cached;
 
 namespace NotificationService.Extensions.Notifications
 {
@@ -35,23 +30,21 @@ namespace NotificationService.Extensions.Notifications
             var smsSettings = configuration.GetSection("SmsSettings");
 
             // Add services to the container.
-
-            //Helpers
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-
-            //Db
-            services.AddDbContext<NotificationDbContext>(options =>
-            {
-                options.UseSqlServer(configuration.GetConnectionString("App"));
-            });
-
             //Cache
             services.AddScoped<ICacheService, CacheService>();
 
             //Repos
             services.AddScoped<IEmailsRepository, EmailsRepository>();
+            services.Decorate<IEmailsRepository, CachedEmailsRepository>();
+            
             services.AddScoped<IPushRepository, PushRepository>();
+            services.Decorate<IPushRepository, CachedPushRepository>();
+            
             services.AddScoped<ISmsRepository, SmsRepository>();
+            services.Decorate<ISmsRepository, CachedSmsRepository>();
+            
+            
+            //Services
             services.AddScoped<IRecipientService, RecipientService>();
 
             //Config
@@ -72,9 +65,7 @@ namespace NotificationService.Extensions.Notifications
             services.AddScoped<IValidator<EmailRequestQuerryParameters>, EmailRequestQuerryParametersValidation>();
             services.AddScoped<IValidator<SmsRequestQuerryParameters>, SmsRequestQuerryParametersValidation>();
             services.AddScoped<IValidator<PushRequestQuerryParameters>, PushRequestQuerryParametersValidation>();
-
-            services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserRequestValidation>();
-
+            
             //Mapper
             services.AddScoped(provider => new MapperConfiguration(cfg =>
                 {
@@ -88,11 +79,7 @@ namespace NotificationService.Extensions.Notifications
                 }).CreateMapper()
             );
 
-            //HealthChecks
-            services.AddHealthChecks()
-                .AddCheck<DatabaseHealthCheck>("mssqlDb")
-                .AddCheck<CacheDbHealthCheck>("cache")
-                .AddCheck<SmsPlanetApiHealthCheck>("smsPlanetApi");
+
         }
     }
 }

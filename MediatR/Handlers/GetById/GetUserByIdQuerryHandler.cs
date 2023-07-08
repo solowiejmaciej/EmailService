@@ -9,11 +9,11 @@ namespace NotificationService.MediatR.Handlers.GetById
 {
     public class GetUserByIdQuerryHandler : IRequestHandler<GetUserByIdQuerry, UserDto>
     {
-        private readonly IUserRepository _repository;
+        private readonly IUsersRepository _repository;
         private readonly IMapper _mapper;
 
         public GetUserByIdQuerryHandler(
-            IUserRepository repository,
+            IUsersRepository repository,
             IMapper mapper
             )
         {
@@ -23,7 +23,7 @@ namespace NotificationService.MediatR.Handlers.GetById
 
         public async Task<UserDto> Handle(GetUserByIdQuerry request, CancellationToken cancellationToken)
         {
-            var user = await _repository.GetByIdAsync(request.Id);
+            var user = await _repository.GetByIdAsync(request.Id, cancellationToken);
             if (user is null)
             {
                 throw new NotFoundException($"User with id {request.Id} not found");

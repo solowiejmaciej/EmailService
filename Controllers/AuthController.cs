@@ -4,9 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using NotificationService.MediatR.Commands.CreateNew;
 using NotificationService.MediatR.Queries.GetToken;
 using NotificationService.Models.Requests;
-using NotificationService.Services.Auth;
 
-namespace AuthService.Controllers
+namespace NotificationService.Controllers
 {
     [EnableCors("apiCorsPolicy")]
     [Route("api/[controller]")]
@@ -42,13 +41,11 @@ namespace AuthService.Controllers
         [HttpPost("Login")]
         public async Task<ActionResult> Login(UserLoginRequest user)
         {
-            var querry = new GetTokenQuerry()
+            var response = await _mediator.Send(new GetTokenQuerry()
             {
                 Email = user.Email,
                 Password = user.Password
-            };
-
-            var response = await _mediator.Send(querry);
+            });
             return Ok(response);
         }
 
