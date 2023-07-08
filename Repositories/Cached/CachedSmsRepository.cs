@@ -7,19 +7,24 @@ public class CachedSmsRepository : ISmsRepository
 {
     private readonly ISmsRepository _decorated;
     private readonly ICacheService _cacheService;
+    private readonly ILogger<CachedSmsRepository> _logger;
 
-    public CachedSmsRepository(ISmsRepository decorated, ICacheService cacheService)
+
+    public CachedSmsRepository(ISmsRepository decorated, ICacheService cacheService, ILogger<CachedSmsRepository> logger)
     {
         _decorated = decorated;
         _cacheService = cacheService;
+        _logger = logger;
     }
     
     public async Task<int> SoftDeleteAsync(int id, string userId, CancellationToken cancellationToken = default)
     {
         var key = $"sms-{id}";
-        var secondDey = $"sms-{userId}";
+        var secondKey = $"sms-es-{userId}";
         await _cacheService.RemoveDataAsync(key, cancellationToken);
-        await _cacheService.RemoveDataAsync(secondDey, cancellationToken);
+        await _cacheService.RemoveDataAsync(secondKey, cancellationToken);
+        _logger.LogInformation("cached key {0} removed", key);
+        _logger.LogInformation("cached key {0} removed", secondKey);
         return await _decorated.SoftDeleteAsync(id, userId, cancellationToken);
     }
 
@@ -37,6 +42,7 @@ public class CachedSmsRepository : ISmsRepository
     {
         var key = $"sms-es-{sms.RecipientId}";
         await _cacheService.RemoveDataAsync(key, cancellationToken);
+        _logger.LogInformation("cached key {0} removed", key);
         await _decorated.AddAsync(sms, cancellationToken);
     }
     
@@ -48,6 +54,7 @@ public class CachedSmsRepository : ISmsRepository
         var cachedData = await _cacheService.GetDataAsync<List<SmsNotification>>(key, cancellationToken);
         if (cachedData is null)
         {
+            _logger.LogInformation("Fetching from db for key {0}", key);
             var data = await _decorated.GetAllSmsToUserIdAsync(userId, cancellationToken);
             if (data is null)
             {
@@ -57,6 +64,8 @@ public class CachedSmsRepository : ISmsRepository
             await _cacheService.SetDataAsync(key, data ,expiryTime, cancellationToken );
             return data;
         }
+        _logger.LogInformation("Cache hit for key {0}", key);
+
         return cachedData;
     }
 
@@ -68,6 +77,8 @@ public class CachedSmsRepository : ISmsRepository
         var cachedData = await _cacheService.GetDataAsync<SmsNotification>(key, cancellationToken);
         if (cachedData is null)
         {
+            _logger.LogInformation("Fetching from db for key {0}", key);
+
             var data = await _decorated.GetSmsByIdAndUserIdAsync(id, userId, cancellationToken);
 
             if (data is null)
@@ -78,7 +89,7 @@ public class CachedSmsRepository : ISmsRepository
             await _cacheService.SetDataAsync(key, data ,expiryTime, cancellationToken );
             return data;
         }
-        
+        _logger.LogInformation("Cache hit for key {0}", key);
         return cachedData;
     }
 
