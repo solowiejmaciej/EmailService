@@ -6,6 +6,7 @@ using NotificationService.MediatR.Commands.Delete;
 using NotificationService.MediatR.Commands.Update;
 using NotificationService.MediatR.Queries.GetAll;
 using NotificationService.MediatR.Queries.GetById;
+using NotificationService.Models.QueryParameters.GetAll;
 using NotificationService.Models.Requests.Update;
 
 namespace NotificationService.Controllers
@@ -25,9 +26,17 @@ namespace NotificationService.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetAll()
+        public async Task<ActionResult> GetAll(
+            [FromQuery] GetAllUsersQueryParameters queryParameters
+            )
         {
-            var result = await _mediator.Send(new GetAllUsersQuerry());
+            var query = new GetAllUsersQuery()
+            {
+                SearchPhrase = queryParameters.SearchPhrase,
+                PageNumber = queryParameters.PageNumber,
+                PageSize = queryParameters.PageSize,
+            };
+            var result = await _mediator.Send(query);
             return Ok(result);
         }
 

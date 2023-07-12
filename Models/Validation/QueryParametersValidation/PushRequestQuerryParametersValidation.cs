@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using NotificationService.Entities;
 using NotificationService.Models.QueryParameters;
+using NotificationService.Models.QueryParameters.Create;
 using NotificationService.Models.Validation.Custom;
 
 namespace NotificationService.Models.Validation.QueryParametersValidation
