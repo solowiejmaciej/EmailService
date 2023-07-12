@@ -6,6 +6,8 @@ using NotificationService.MediatR.Commands.Delete;
 using NotificationService.MediatR.Queries.GetAll;
 using NotificationService.MediatR.Queries.GetById;
 using NotificationService.Models.QueryParameters;
+using NotificationService.Models.QueryParameters.Create;
+using NotificationService.Models.QueryParameters.GetAll;
 using NotificationService.Models.Requests;
 
 namespace NotificationService.Controllers.Notifications
@@ -24,7 +26,7 @@ namespace NotificationService.Controllers.Notifications
         [HttpPost]
         public async Task<IActionResult> Add(
             [FromBody] AddSmsRequest request,
-            [FromQuery] SmsRequestQuerryParameters parameters
+            [FromQuery] CreateSmsRequestQueryParameters parameters
         )
         {
             var command = new CreateNewSmsCommand()
@@ -39,12 +41,18 @@ namespace NotificationService.Controllers.Notifications
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult> GetAll()
+        public async Task<ActionResult> GetAll(
+            [FromQuery] GetAllSmsRequestQueryParameters queryParameters
+        )
         {
-            var querry = new GetAllSmsQuerry()
+            var query = new GetAllPushesQuery()
             {
+                SearchPhrase = queryParameters.SearchPhrase,
+                PageNumber = queryParameters.PageNumber,
+                PageSize = queryParameters.PageSize,
+                Status = queryParameters.Status
             };
-            var allSmsDtoByCurrentUser = await _mediator.Send(querry);
+            var allSmsDtoByCurrentUser = await _mediator.Send(query);
             return Ok(allSmsDtoByCurrentUser);
         }
 
@@ -53,12 +61,12 @@ namespace NotificationService.Controllers.Notifications
         [HttpGet]
         public async Task<ActionResult> GetById([FromRoute] int id)
         {
-            var querry = new GetSmsByIdQuerry()
+            var query = new GetSmsByIdQuerry()
             {
                 Id = id
             };
 
-            var smsCreatedByCurrentUserWithSearchId = await _mediator.Send(querry);
+            var smsCreatedByCurrentUserWithSearchId = await _mediator.Send(query);
             return Ok(smsCreatedByCurrentUserWithSearchId);
         }
 

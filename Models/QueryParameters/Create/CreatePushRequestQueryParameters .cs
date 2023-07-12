@@ -1,4 +1,4 @@
-﻿namespace NotificationService.Models.QueryParameters
+﻿namespace NotificationService.Models.QueryParameters.Create
 {
     public class PushRequestQuerryParameters
     {

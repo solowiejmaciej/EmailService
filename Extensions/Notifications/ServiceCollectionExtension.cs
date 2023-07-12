@@ -12,6 +12,7 @@ using NotificationService.Models.Validation.RequestValidation;
 using NotificationService.Repositories;
 using NotificationService.Services;
 using NotificationService.MappingProfiles.User;
+using NotificationService.Models.QueryParameters.Create;
 using NotificationService.Repositories.Cached;
 
 namespace NotificationService.Extensions.Notifications
@@ -62,8 +63,8 @@ namespace NotificationService.Extensions.Notifications
             services.AddScoped<IValidator<AddSmsRequest>, AddSmsRequestValidation>();
             services.AddScoped<IValidator<AddPushRequest>, AddPushRequestValidation>();
 
-            services.AddScoped<IValidator<EmailRequestQuerryParameters>, EmailRequestQuerryParametersValidation>();
-            services.AddScoped<IValidator<SmsRequestQuerryParameters>, SmsRequestQuerryParametersValidation>();
+            services.AddScoped<IValidator<CreateEmailRequestQueryParameters>, EmailRequestQuerryParametersValidation>();
+            services.AddScoped<IValidator<CreateSmsRequestQueryParameters>, SmsRequestQuerryParametersValidation>();
             services.AddScoped<IValidator<PushRequestQuerryParameters>, PushRequestQuerryParametersValidation>();
             
             //Mapper

@@ -22,6 +22,35 @@ public static class ServiceCollectionExtension
         var apiKeyConfigurationSection = configuration.GetSection("ApiKeySettings");
         apiKeyConfigurationSection.Bind(apiKeySettings);
 
+        RSA rsa = RSA.Create();
+        
+        rsa.ImportSubjectPublicKeyInfo(
+            source: Convert.FromBase64String(jwtSettings.PublicKey),
+            bytesRead: out int _
+        );
+        
+        var tokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            IssuerSigningKey = new RsaSecurityKey(rsa),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+            
+        };
+        
+        var refreshTokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            IssuerSigningKey = new RsaSecurityKey(rsa),
+        };
+
+        services.AddSingleton(tokenValidationParameters);
+        services.AddSingleton(refreshTokenValidationParameters);
+        
         services.Configure<ApiKeySettings>(apiKeyConfigurationSection);
         services.Configure<JWTSettings>(authConfigurationSection);
 
@@ -34,20 +63,9 @@ public static class ServiceCollectionExtension
             option.DefaultChallengeScheme = "Bearer";
         }).AddJwtBearer(cfg =>
         {
-            RSA rsa = RSA.Create();
-            rsa.ImportSubjectPublicKeyInfo(
-                source: Convert.FromBase64String(jwtSettings.JwtPublicKey),
-                bytesRead: out int _
-            );
             cfg.RequireHttpsMetadata = false;
             cfg.SaveToken = true;
-            cfg.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-
-                IssuerSigningKey = new RsaSecurityKey(rsa),
-            };
+            cfg.TokenValidationParameters = tokenValidationParameters;
         });
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using NotificationService.MediatR.Commands.CreateNew;
+using NotificationService.MediatR.Commands.RefreshToken;
 using NotificationService.MediatR.Queries.GetToken;
 using NotificationService.Models.Requests;
 
@@ -53,6 +54,19 @@ namespace NotificationService.Controllers
         public ActionResult LoginViaQr()
         {
             throw new NotImplementedException();
+        }
+        
+        [HttpPost("RefreshToken")]
+        public async Task<ActionResult> RefreshToken(
+        [FromBody] RefreshTokenRequest refreshTokenRequest
+            )
+        {
+            var response = await _mediator.Send(new RefreshTokenCommand()
+            {
+                Token = refreshTokenRequest.Token,
+                RefreshToken = refreshTokenRequest.RefreshToken
+            });
+            return Ok(response);
         }
     }
 }

@@ -1,16 +1,20 @@
-﻿using MediatR;
+﻿using System.Diagnostics;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NotificationService.Entities.NotificationEntities;
 using NotificationService.MediatR.Commands.CreateNew;
 using NotificationService.MediatR.Commands.Delete;
 using NotificationService.MediatR.Queries.GetAll;
 using NotificationService.MediatR.Queries.GetById;
+using NotificationService.Models.Pagination;
 using NotificationService.Models.QueryParameters;
+using NotificationService.Models.QueryParameters.Create;
+using NotificationService.Models.QueryParameters.GetAll;
 using NotificationService.Models.Requests;
 
 namespace NotificationService.Controllers.Notifications
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class EmailsController : ControllerBase
@@ -25,7 +29,7 @@ namespace NotificationService.Controllers.Notifications
         [HttpPost]
         public async Task<ActionResult> Add(
             [FromBody] AddEmailRequest request,
-            [FromQuery] EmailRequestQuerryParameters parameters
+            [FromQuery] CreateEmailRequestQueryParameters parameters
         )
         {
             var command = new CreateNewEmailCommand()
@@ -41,9 +45,17 @@ namespace NotificationService.Controllers.Notifications
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult> GetAll()
+        public async Task<ActionResult> GetAll(
+        [FromQuery] GetAllEmailsRequestQueryParameters queryParameters
+            )
         {
-            var query = new GetAllEmailsQuerry();
+            var query = new GetAllEmailsQuery()
+            {
+                SearchPhrase = queryParameters.SearchPhrase,
+                PageNumber = queryParameters.PageNumber,
+                PageSize = queryParameters.PageSize,
+                Status = queryParameters.Status
+            };
             var emailDtosByCurrentUser = await _mediator.Send(query);
             return Ok(emailDtosByCurrentUser);
         }

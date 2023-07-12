@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using NotificationService.Entities.NotificationEntities;
+using NotificationService.Models.Responses;
 
 namespace NotificationService.Entities
 {
@@ -13,5 +14,6 @@ namespace NotificationService.Entities
         public DbSet<EmailNotification> EmailsNotifications { get; set; }
         public DbSet<PushNotification> PushNotifications { get; set; }
         public DbSet<SmsNotification> SmsNotifications { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
     }
 }

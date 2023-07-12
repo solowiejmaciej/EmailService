@@ -6,11 +6,12 @@ using NotificationService.MediatR.Commands.Delete;
 using NotificationService.MediatR.Queries.GetAll;
 using NotificationService.MediatR.Queries.GetById;
 using NotificationService.Models.QueryParameters;
+using NotificationService.Models.QueryParameters.Create;
+using NotificationService.Models.QueryParameters.GetAll;
 using NotificationService.Models.Requests;
 
 namespace NotificationService.Controllers.Notifications
 {
-    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PushsController : ControllerBase
@@ -42,12 +43,18 @@ namespace NotificationService.Controllers.Notifications
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult> GetAll()
+        public async Task<ActionResult> GetAll(
+            [FromQuery] GetAllPushesRequestQueryParameters queryParameters
+        )
         {
-            var querry = new GetAllPushesQuerry()
+            var query = new GetAllPushesQuery()
             {
+                SearchPhrase = queryParameters.SearchPhrase,
+                PageNumber = queryParameters.PageNumber,
+                PageSize = queryParameters.PageSize,
+                Status = queryParameters.Status
             };
-            var allPushesDtoByCurrentUser = await _mediator.Send(querry);
+            var allPushesDtoByCurrentUser = await _mediator.Send(query);
             return Ok(allPushesDtoByCurrentUser);
         }
 
@@ -56,12 +63,12 @@ namespace NotificationService.Controllers.Notifications
         [HttpGet]
         public async Task<ActionResult> GetById([FromRoute] int id)
         {
-            var querry = new GetPushByIdQuerry()
+            var query = new GetPushByIdQuerry()
             {
                 Id = id
             };
 
-            var pushCreatedByCurrentUserWithSearchId = await _mediator.Send(querry);
+            var pushCreatedByCurrentUserWithSearchId = await _mediator.Send(query);
             return Ok(pushCreatedByCurrentUserWithSearchId);
         }
 

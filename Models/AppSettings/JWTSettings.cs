@@ -2,8 +2,8 @@
 {
     public class JWTSettings
     {
-        public string JwtPublicKey { get; set; }
-        public int JwtExpireMinutes { get; set; }
-        public string JwtIssuer { get; set; }
+        public string PublicKey { get; set; }
+        public int ExpireMinutes { get; set; }
+        public string Issuer { get; set; }
     }
 }

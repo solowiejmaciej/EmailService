@@ -7,11 +7,12 @@ API that allows users to send Notifications and manage them
 
 - Background jobs
 - Cache
-- JWT Auth using AuthService
+- Azure Service Bus
+- JWT Auth 
+- Refresh Tokens
 - Email sending with SMTP
 - Push sending with Firebase
 - SMS sending with SMSPlanetAPI
-- Azure Service Bus
 
 
 # Built With
@@ -31,120 +32,234 @@ API that allows users to send Notifications and manage them
 
 ## Hangfire
 
-| Job Name  | Cron     |
-| :-------- | :------- |
-| `Delete Sms` | `* * * * *` |
+| Job Name        | Cron        |
+|:----------------|:------------|
+| `Delete Sms`    | `* * * * *` |
 | `Delete Emails` | `* * * * *` |
 | `Delete Pushes` | `* * * * *` |
 
-## Requirements
+## Configuration
+```json
+{
+  "ApiKeySettings": {
+    "HeaderName": "x-api-key",
+    "ApiKey": "youkey"
+  },
+  "AzureServiceBusSettings": {
+    "ConnectionString": "foo",
+    "QueueName": "foo"
+  },
+  "SmsSettings": {
+    "Key": "foo",
+    "Password": "foo",
+    "SenderName": "foo",
+    "ApiUrl": "foo"
+  },
+  "GoogleFirebaseSettings": {
+    "type": "foo",
+    "project_id": "foo",
+    "private_key_id": "foo",
+    "private_key": "foo",
+    "client_email": "foo",
+    "client_id": "foo",
+    "auth_uri": "foo",
+    "token_uri": "foo",
+    "auth_provider_x509_cert_url": "foo",
+    "client_x509_cert_url": "foo",
+    "universe_domain": "foo"
+  },
+  "RedisSettings": {
+    "Endpoints": "foo",
+    "Password": "foo"
+  },
+  "AuthSettings": {
+    "PublicKey": "foo",
+    "ExpireMinutes": 120,
+    "Issuer": "foo"
+  },
+  "HangfireSettings": {
+    "UserName": "foo",
+    "Password": "foo"
+  },
+  "ConnectionStrings": {
+    "App": "foo",
+    "Hangfire": "foo",
+    "Redis" : "foo"
+  },
+  "SMTPSettings": {
+    "Host": "foo",
+    "Port": 465,
+    "UseSsl": true,
+    "Username": "foo",
+    "Password": "foo",
+    "SenderEmail": "foo",
+    "SenderName": "foo"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Hangfire": "Information"
+    }
+  },
+  "AllowedHosts": "*"
+}
+
+
+```
 
 ## Auth
 
-## Fetch data
+
+| Header          | Usage                | Required                    |
+|:----------------|:---------------------|:----------------------------|
+| `x-api-key`     | `Key to the api`     | `Required by every enpoint` |
+| `Authorization` | `Token to auth user` | `Required by every enpoint` |
+                    
+
+
+## Usage example
 
 ```http
-  GET /api/Emails
+  POST /api/Auth/Register
 ```
-
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `creatorId` | `string` | Id of the account that created email |
+#####
+```curl
+curl -X 'POST' \
+  'https://localhost:7277/api/Auth/Register' \
+  -H 'accept: */*' \
+  -H 'X-Api-Key: youapikey' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "firstname": "string",
+  "surname": "string",
+  "password": "string",
+  "confirmPassword": "string",
+  "email": "string@gmail.com",
+  "phoneNumber": "111222333",
+  "deviceId": "string"
+}'
+```
 
 ### Response
 
 ```json
-[
-  {
-    "id": 0,
-    "emailSenderName": "string",
-    "subject": "string",
-    "emailTo": "string",
-    "emailFrom": "string",
-    "body": "string",
-    "isEmailSended": true,
-    "createdAt": "2023-05-01T13:50:32.432Z",
-    "createdById": 0
-  },
-  {
-    "id": 1,
-    "emailSenderName": "string",
-    "subject": "string",
-    "emailTo": "string",
-    "emailFrom": "string",
-    "body": "string",
-    "isEmailSended": true,
-    "createdAt": "2023-05-01T13:50:32.432Z",
-    "createdById": 0
-  },
-]
+{
+  "token": "signedJwtTokenHere",
+  "refreshToken": "2d29aedf-23d5-483c-ae75-58b235b52c5d",
+  "statusCode": 200,
+  "issuedDate": "2023-07-12T21:54:39.080989+02:00",
+  "expiresAt": "2023-07-12T23:54:39.0714333+02:00",
+  "role": "User",
+  "roleId": "CAE53EE9-6E7C-44B4-B2B3-D062B4A346F8",
+  "userId": "6cb70bb2-156b-42e5-9431-ffa960fe4d20"
+}
 ```
 
-#### Get email
+## Send new Email
 
 ```http
-  GET /api/Emails/${id}
+  POST /api/Emails
 ```
+#####
+```curl
+curl -X 'POST' \
+  'https://localhost:7277/api/Emails?UserId=6cb70bb2-156b-42e5-9431-ffa960fe4d20' \
+  -H 'accept: */*' \
+  -H 'X-Api-Key: youapikey' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "content": "string345",
+  "subject": "string"
+}'
+
+```
+
 ### Response 
 
 ```json
 {
-  "id": 0,
-  "emailSenderName": "string",
   "subject": "string",
-  "emailTo": "string",
-  "emailFrom": "string",
-  "body": "string",
-  "isEmailSended": true,
-  "createdAt": "2023-05-01T13:51:35.299Z",
-  "createdById": 0,
-  "isDeleted": true
+  "content": "string345",
+  "recipiantId": "6cb70bb2-156b-42e5-9431-ffa960fe4d20"
 }
 ```
 
-## Add new email
+## Get emails
 ```http
-  POST /api/Emails
+  GET /api/Emails
 ```
-### Body 
+#####
+```curl
+curl -X 'GET' \
+  'https://localhost:7277/api/Emails?Status=1' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer signedJwt' \
+  -H 'X-Api-Key: youapikey'
+```
+
+### Response 
 
 ```json
+
 {
-  "emailSenderName": "string",
-  "subject": "string",
-  "emailTo": "email",
-  "body": "string"
+  "items": [
+    {
+      "subject": "string",
+      "id": 1003,
+      "createdAt": "2023-07-12T21:57:38.3492636",
+      "recipientId": "6cb70bb2-156b-42e5-9431-ffa960fe4d20",
+      "status": 1,
+      "content": "string345"
+    }
+  ],
+  "totalPages": 1,
+  "itemsFrom": 1,
+  "itemsTo": 100,
+  "totalItemsCount": 1
 }
+
 ```
-
-## Mark email as deleted
-
-
+## Get email
 ```http
-  DELETE /api/Emails
+  GET /api/Emails/{id}
+```
+#####
+```curl
+curl -X 'GET' \
+  'https://localhost:7277/api/Emails/1003' \
+  -H 'accept: */*' \
+  -H 'Authorization:  Bearer signedJwt' \
+  -H 'X-Api-Key: youapikey'
 ```
 
-| Parameter | Type     | Description                |
-| :-------- | :------- | :------------------------- |
-| `id` | `int` | **Required**|
+### Response
 
-
-## Add new email and send it now
-```http
-  POST /api/EmailSender/SendEmailNow
-```
-### Body
 ```json
-{
-  "emailSenderName": "string",
-  "subject": "string",
-  "emailTo": "string",
-  "body": "string"
-}
-```
-## Related
 
-[AuthService](https://github.com/solowiejmaciej/AuthService)
+{
+  "subject": "string",
+  "id": 1003,
+  "createdAt": "2023-07-12T21:57:38.3492636",
+  "recipientId": "6cb70bb2-156b-42e5-9431-ffa960fe4d20",
+  "status": 1,
+  "content": "string345"
+}
+
+```
+
+## Delete email
+```http
+  DELETE /api/Emails/{id}
+```
+#####
+```curl
+curl -X 'DELETE' \
+  'https://localhost:7277/api/Emails/1003' \
+  -H 'accept: */*' \
+  -H 'Authorization: Bearer signedJwt' \
+  -H 'X-Api-Key: youapikey'
+```
 
 ## Contact
 
